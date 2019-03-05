@@ -1,0 +1,3600 @@
+<!DOCTYPE html>
+<!-- saved from url=(0083)http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Lab Guide: Elasticsearch Engineer I</title>
+
+        
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/images/favicon.ico" type="image/x-icon">
+
+        <!--
+             Include training css and js. We include it twice to make it easier
+             to work on your own machine and with a deployed machine that the
+             student sees.
+        -->
+        <link rel="stylesheet" href="./Lab Guide_ Elasticsearch Engineer I_files/elastic_training.css">
+        <link rel="stylesheet" href="./Lab Guide_ Elasticsearch Engineer I_files/elastic_training(1).css">
+        <script type="text/javascript" src="./Lab Guide_ Elasticsearch Engineer I_files/elastic_training.js.다운로드"></script>
+        <script type="text/javascript" src="./Lab Guide_ Elasticsearch Engineer I_files/elastic_training.js(1).다운로드"></script>
+    </head>
+
+
+    <body>
+        <img class="logo" src="./Lab Guide_ Elasticsearch Engineer I_files/elastic-logo.svg" width="300">
+        <div class="header">Lab Guide: Elasticsearch Engineer I</div>
+        <ul>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab1">Lab 1: Elastic Stack Overview</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab2">Lab 2: Getting Started with Elasticsearch</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab3">Lab 3: CRUD Operations</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab4">Lab 4: Querying Data</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab5">Lab 5: Text Analysis and Mappings</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab6">Lab 6: Custom Mappings</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab7">Lab 7: Node Types</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab8">Lab 8: Understanding Shards</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab9">Lab 9: Troubleshooting Elasticsearch</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab10">Lab 10: Improving Search Results</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab11">Lab 11: Aggregating Data</a></li>
+            <li><a href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/labs.html#lab12">Lab 12: Best Practices</a></li>
+        </ul>
+        <hr>
+
+        <!-- ********************************************************** -->
+
+        <a name="lab1"></a>
+        <h2>Lab 1: Elastic Stack Overview</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will see how quickly and easily the Elastic Stack can be used to read data from a database and to collect data from log files. You will startup Elasticsearch and Kibana; use Logstash to ingest the blogs from a Postgres database into Elasticsearch; and use Filebeat to ingest the web access log data from log files.
+        </p>
+
+        <ol>
+            <li>
+
+                From within the Virtual Environment UI, click on the <strong>"My Lab"</strong> icon in the left toolbar (if you do not have access to the virtual environment, click <a target="_blank" href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/local_lab.html">here</a> to see how to run the labs on your local machine): <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab00_strigo_lab_icon.png">
+
+                A command prompt will open, and you will be logged in to a Linux machine that is configured to provide easy SSH access to three servers: <kbd>server1</kbd>, <kbd>server2</kbd> and <kbd>server3</kbd>. You will deploy an Elasticsearch cluster on these 3 servers throughout the course. For this first lab, you will perform all of the tasks on <kbd>server1</kbd>.
+            </li>
+            <li>
+                SSH onto <kbd>server1</kbd>:
+                <pre class="bash">ssh server1</pre>
+            </li>
+            <li>
+                View the contents of the <kbd>elastic</kbd> user home folder by entering <kbd>ls -l</kbd>. You should see Elasticsearch, Filebeat, Kibana and Logstash tar files, which were all simply downloaded from our website. (You will see other files in the home folder as well):
+                <pre class="bash">[elastic@server1 ~]$ ls -l
+total 480336
+drwxr-xr-x 5 elastic elastic      4096 Nov 23 15:09 datasets
+-rw-r--r-- 1 elastic elastic 113317061 Nov 23 15:09 elasticsearch-6.5.1.tar.gz
+-rw-r--r-- 1 elastic elastic  11288326 Nov 23 15:09 filebeat-6.5.1-linux-x86_64.tar.gz
+-rw-r--r-- 1 elastic elastic 206477263 Nov 23 15:09 kibana-6.5.1-linux-x86_64.tar.gz
+-rw-r--r-- 1 elastic elastic 160215101 Nov 23 15:09 logstash-6.5.1.tar.gz
+-rw-r--r-- 1 elastic elastic    551290 Nov 23 15:09 postgresql-9.1-901-1.jdbc4.jar</pre>
+            </li>
+            <li>
+                Extract Elasticsearch using the following command:
+                <pre class="bash">tar -zxf elasticsearch-6.5.1.tar.gz</pre>
+            </li>
+            <li>
+                Start Elasticsearch:
+                <pre class="bash">./elasticsearch-6.5.1/bin/elasticsearch -E network.host=0.0.0.0</pre>
+            </li>
+            <li>
+                Wait for Elasticsearch to startup. You should see a message showing that it started. (The output order may vary a bit.)
+                <pre class="bash">[2018-11-23T16:45:45,780][INFO ][o.e.x.s.t.n.SecurityNetty4HttpServerTransport] [Xe6KFUY] publish_address {172.18.0.2:9200}, bound_addresses {[::]:9200}
+[2018-11-23T16:45:45,780][INFO ][o.e.n.Node               ] [Xe6KFUY] started
+[2018-11-23T16:45:45,784][WARN ][o.e.x.s.a.s.m.NativeRoleMappingStore] [Xe6KFUY] Failed to clear cache for realms [[]]
+[2018-11-23T16:45:45,842][INFO ][o.e.g.GatewayService     ] [Xe6KFUY] recovered [0] indices into cluster_state
+[2018-11-23T16:45:46,151][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.watch-history-9] for index patterns [.watcher-history-9*]
+[2018-11-23T16:45:46,170][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.watches] for index patterns [.watches*]
+[2018-11-23T16:45:46,198][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.triggered_watches] for index patterns [.triggered_watches*]
+[2018-11-23T16:45:46,246][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.monitoring-logstash] for index patterns [.monitoring-logstash-6-*]
+[2018-11-23T16:45:46,295][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.monitoring-es] for index patterns [.monitoring-es-6-*]
+[2018-11-23T16:45:46,335][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.monitoring-beats] for index patterns [.monitoring-beats-6-*]
+[2018-11-23T16:45:46,357][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.monitoring-alerts] for index patterns [.monitoring-alerts-6]
+[2018-11-23T16:45:46,379][INFO ][o.e.c.m.MetaDataIndexTemplateService] [Xe6KFUY] adding template [.monitoring-kibana] for index patterns [.monitoring-kibana-6-*]
+[2018-11-23T16:45:46,515][INFO ][o.e.l.LicenseService     ] [Xe6KFUY] license [ae99cbc8-b4a5-423f-8d68-b6efc07c1577] mode [basic] - valid</pre>
+            </li>
+            <li>
+                Within the Virtual Environment, open a new console by clicking the plus sign <kbd>"+"</kbd> next to the tab of your current console, and you should see a command prompt:
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_06v.png" width="50%" height="50%">
+            </li>
+            <li>
+                SSH onto <kbd>server1</kbd>:
+                <pre class="bash">ssh server1</pre>
+            </li>
+            <li>
+                The first dataset you are going to ingest into Elasticsearch is the blogs dataset using Logstash, which has been downloaded already.  Extract Logstash using the following command:
+                <pre class="bash">tar -zxf logstash-6.5.1.tar.gz</pre>
+            </li>
+            <li>
+                Logstash is going to retrieve the blogs from a SQL database and index them into your running Elasticsearch instance. This is accomplished using a Logstash config file that has been provided for you named <kbd>blogs_sql.conf</kbd>. You do not need to modify this file in any way, but here are its contents. Notice the <kbd>"input"</kbd> is all blogs from a table named <kbd>"blogs"</kbd>, and the <kbd>"output"</kbd> is an Elasticsearch index named <kbd>"blogs"</kbd>:
+                <pre><code>input {
+  jdbc {
+    jdbc_connection_string =&gt; "jdbc:postgresql://db_server:5432/"
+    jdbc_driver_class =&gt; "org.postgresql.Driver"
+    jdbc_driver_library =&gt; "/home/elastic/postgresql-9.1-901-1.jdbc4.jar"
+    jdbc_user =&gt; "postgres"
+    jdbc_password =&gt; "password"
+    statement =&gt; "SELECT * from blogs"
+  }
+}
+
+filter {
+  mutate {
+    remove_field =&gt; ["@version", "host", "message", "@timestamp", "id", "tags"]
+  }
+}
+
+output {
+  stdout { codec =&gt; "dots"}
+  elasticsearch {
+    index =&gt; "blogs"
+  }
+}</code></pre>
+            </li>
+            <li>
+                To run Logstash with this config file, execute the following command:
+                <pre class="bash">./logstash-6.5.1/bin/logstash -f datasets/blogs_sql.conf</pre>
+                Logstash will take some time to start, so make sure to wait before you go to the next step. Eventually the output will show dots, and each dot represents a document being indexed into Elasticsearch. When Logstash is finished, you will see a "Pipeline has terminated" message:
+                <pre class="bash">......................................................................................................................
+[2018-07-10T19:24:24,074][INFO ][logstash.pipeline        ] Pipeline has terminated {:pipeline_id=&gt;"main", :thread=&gt;"#&lt;Thread:0x58e04b6c run&gt;"}</pre>
+            </li>
+            <li>
+                The <b>"blogs"</b> table in the database contains 1594 entries. Let's verify that all those entries are in Elasticseach. Execute the following command:
+                <pre class="bash">curl 'localhost:9200/blogs/_count?pretty'</pre>
+                You should see the following response:
+                <pre><code>{
+  "count" : 1594,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "skipped" : 0,
+    "failed" : 0
+  }
+}</code></pre>
+            </li>
+
+            <li>
+                Now that we have all blogs indexed, let's see how the search page works. Access the
+                <script language="JavaScript">
+                    if (window.location.host) {
+                        document.write('<a target="_blank" href="' + window.location.protocol + '//' + window.location.hostname + ':443' + '" >blogs search page</a> ' );
+                    } else {
+                        document.write('<a target="_blank" href="http://localhost:443">blogs search page</a>')
+                    }
+                </script><a target="_blank" href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com:443/">blogs search page</a> 
+                and play around with it.
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_search_page.png">
+                Congratulations, the blog data is in Elasticsearch and the webpage is working! Make sure to familiarize yourself with different searches, filtering by category and date, and also paging. Over the next chapters you are going to learn how to write the queries and aggregations used to build this application.
+
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_search_page2.png">
+            </li>
+
+            <li>
+                Next, let's index the access logs dataset. You will use Filebeat to monitor the log files and ingest every line. Filebeat is downloaded already on <kbd>server1</kbd>, but you need to extract it using the following command:
+
+                <pre class="bash">tar -zxf filebeat-6.5.1-linux-x86_64.tar.gz</pre>
+            </li>
+
+            <li>Run the following command to start Filebeat using the <kbd>filebeat.yml</kbd> configuration file that has been provided. There will be no output - the command prompt will just hang:
+                <pre class="bash">./filebeat-6.5.1-linux-x86_64/filebeat -c datasets/filebeat.yml</pre>
+            </li>
+            <li>
+                While Filebeat is running, open a third Terminal tab in the Virtual Environment UI and SSH onto <kbd>server1</kbd> again:
+                <pre class="bash">ssh server1</pre>
+            </li>
+            <li>
+                There are 1,751,476 events that occurred between <b>2017-04-01</b> and <b>2017-09-01</b> across multiple log files. They will be ingested into 3 indices called <kbd>"logs_server1"</kbd>, <kbd>"logs_server2"</kbd> and <kbd>"logs_server3"</kbd>. Use the following command to check how many files have been ingested so far:
+                <pre class="bash">curl 'localhost:9200/logs_server*/_count?pretty'</pre>
+                The ingestion might take a few minutes, feel free to go to the next task before all logs are indexed. When all of the log events are indexed, you can kill the Filebeat process using <kbd>Ctrl+c</kbd>.
+            </li>
+            <li>
+                Now that you have the blogs and access log data in Elasticsearch, you will use Kibana to analyze it. First, extract Kibana with the following command:
+                <pre class="bash">tar -zxf kibana-6.5.1-linux-x86_64.tar.gz</pre>
+            </li>
+            <li>Start Kibana:
+                <pre class="bash">./kibana-6.5.1-linux-x86_64/bin/kibana --host=0.0.0.0</pre>
+
+                You should see the following output:
+                <pre class="bash">log   [19:34:04.836] [info][license][xpack] Imported license information from Elasticsearch for the [monitoring] cluster: mode: basic | status: active
+log   [19:34:34.398] [info][listening] Server running at http://0.0.0.0:5601</pre>
+            </li>
+
+            <li>
+                Now that Kibana is running, click
+                <script language="JavaScript">
+                    if (window.location.host) {
+                        document.write('<a target="_blank" href="/app/kibana#/management?_g=()" >here</a>' );
+                    } else {
+                        document.write('<a target="_blank" href="http://localhost:5601/app/kibana#/management?_g=()">here</a>')
+                    }
+                </script><a target="_blank" href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/app/kibana#/management?_g=()">here</a>
+                to connect.
+            </li>
+
+            <li>
+                You need to tell Kibana which indexes to analyze, which is accomplished by defining an <strong>Index Pattern</strong>:
+                <ul>
+                    <li>Click on the <strong>Management</strong> link in the left-hand toolbar of Kibana, then click on <strong>Index Patterns</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_index_pattern1.png"></li>
+
+                    <li>Type <kbd>logs_server*</kbd> in the <strong>Index pattern</strong> field:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_index_pattern2.png"></li>
+
+                    <li>Click <kbd>Next step</kbd> and select <kbd>@timestamp</kbd> as the <strong>Time Filter field name</strong> field:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_index_pattern3.png"></li>
+
+                    <li>Click the <strong>Create index pattern</strong> button. You should see a page that shows the 41 fields of the web log documents.
+                </li></ul>
+            </li>
+
+            <li>
+                Now that we have set up our index pattern, let's visualize the data. You will first create a table with the top 5 most popular blogs:
+                <ul>
+                    <li>Click on <strong>Visualize</strong> in the left-hand toolbar of Kibana, and then click the <strong>Create a visualization</strong> button:
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz1.png">
+
+                    </li><li>Select <strong>Data Table</strong> from the <strong>Data</strong> options:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz2.png"></li>
+
+                    <li>Click on <kbd>logs_server*</kbd>. (This is the index pattern we created, which defines from which indices we will read data.)<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz3.png"></li>
+
+                    <li>Click on <kbd>Split Rows</kbd> under <strong>Buckets</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz4.png"></li>
+
+                    <li>Select <kbd>Terms</kbd> under <strong>Aggregation</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz5.png"></li>
+
+                    <li>Select <kbd>originalUrl.keyword</kbd> under <strong>Field</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz6.png"></li>
+
+                    <li>Click on <strong>Apply changes</strong> (the button that looks like a "play" button):<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz7.png"></li>
+
+                    <li>
+                        Kibana tells you "No results found". That's because Kibana defaults to showing the last 15 minutes of data. Our data is older than that. In the top right, use the Time Picker to change <strong>Last 15 minutes</strong> into <strong>Last 2 years</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz8.png"></li>
+                        You should see the 5 most popular URLs on Elastic's blog site.
+
+                    <li>
+                         Save your visualization by clicking on <strong>Save</strong> in the top-right menu and name the visualization <strong>"Top 5 Blogs Data Table"</strong>.
+                    </li>
+                    <li>
+                        Then click the <strong>Confirm Save</strong> button to save the visualization.
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz9.png" height="50%" width="50%"></li>
+                    
+                    <li>
+                        Click the <kbd>"Visualize"</kbd> link in the left-hand column of Kibana and you should see your data table in the list of saved visualizations.
+                    </li>
+                </ul>
+            </li>
+
+
+            <li>
+                Let's build another visualization - a histogram that shows the distribution of the size of the responses from our website:
+                <ul>
+                    <li>Click on <strong>Visualize</strong> and then on the "<strong>+</strong>" button to create a new visualization:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz2-1.png"></li>
+
+                    <li>Select <strong>Vertical Bar</strong> under <strong>Basic Charts</strong>,  then select the <kbd>logs_server*</kbd> index pattern.</li>
+
+                    <li>Under <strong>Buckets</strong> choose <strong>X-Axis</strong></li>
+                    <li>Under <strong>Aggregation</strong>, choose <strong>Histogram</strong>.</li>
+
+                    <li>Select <strong>Field: response_size</strong> and enter <kbd>5000</kbd> for the <strong>Minimum Interval</strong>.</li>
+
+                    <li>Click <strong>Apply changes</strong> to view the bar chart:
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_viz2-2.png"></li>
+
+                    <li>Save the visualization, giving it the name <strong>"Response Size Bar Chart"</strong></li>
+                </ul>
+            </li>
+
+            <li>
+                After creating visualizations, you can combine them onto a single dashboard:
+                <ul>
+                    <li>Click on <strong>Dashboard</strong> in the left-hand toolbar of Kibana, then click on the <strong>Create a dashboard</strong> button:</li>
+
+                    <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_dashboard1.png">
+
+                    <li>Click on the <strong>Add</strong> menu item and add both of the visualizations that you saved earlier:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_dashboard2.png"></li>
+                    <li>Close the <strong>"Add Panels"</strong> dialog.</li>
+                    <li>Feel free to resize the visualizations and move them around:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_dashboard3.png"></li>
+
+                    <li>Save your dashboard by clicking <strong>Save</strong> in the menu and naming your dashboard <strong>"Web Logs Dashboard"</strong>.
+                    </li><li>
+                        Then click the <strong>Confirm Save</strong> button to save the visualization.
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab01_create_dashboard4.png" height="50%" width="50%"></li>
+                    
+                    <li>You should now see your saved dashboard on the <strong>"Dashboard"</strong> page of Kibana, so you can come back and view the dashboard at any time.</li>
+                </ul>
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary:</b> You have successfully started and used Elasticsearch, Kibana, Filebeat, and Logstash. You used Logstash to connect to the PostgreSQL database and read all records from the blogs table and write them as documents into Elasticsearch. You used Filebeat to monitor log files and write log events into Elasticsearch. Then, you used Kibana to read that data and transform it into nice visualizations, combined onto a single dashboard. This is a little bit of what the Elastic Stack can do. The remainder of this course will focus on the heart of the Elastic Stack: <b>Elasticsearch</b>!
+        </p>
+        <h3>End of Lab 1</h3>
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab2"></a>
+        <h2>Lab 2: Getting Started with Elasticsearch</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will use Kibana's <b>Console</b> to interact with Elasticsearch. You will check basic cluster information and then change a few cluster configurations. Finally, you will secure your Elasticsearch cluster with Elastic security and then you will aslo create users and roles for your secure cluster.
+        </p>
+
+        <ol>
+            <li>
+                Elasticsearch and Kibana are already running from the previous lab.
+                In Kibana, click on the <strong>Dev Tools</strong> button in the side navigation pane to open the <strong>Console</strong> application:
+
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab02_console.png">
+            </li>
+
+            <li>
+                Kibana has several handy <a target="_blank" href="https://www.elastic.co/guide/en/kibana/current/keyboard-shortcuts.html">keyboard shortcuts</a> that will make your time spent in <b>Console</b> more efficient. To view the keyboard shortcuts, click on <strong>"Help"</strong> in the upper-right corner. For example, pressing <kbd>Ctrl + Enter</kbd> (<kbd>Cmd + Enter</kbd> on a Mac) submits a request without having to use your mouse.<br><br> <b>TIP:</b> Click on <strong>"Help"</strong> again to close the Help panel.
+            </li>
+
+            <li>
+                Notice there is a <kbd>match_all</kbd> query already written in the <strong>Console</strong>. Go ahead and run it by clicking the green "play" button that appears to the right of the command, or using the <kbd>Ctrl/Cmd + Enter</kbd> keyboard shortcut. This query hits all documents in all indexes of your cluster, but by default only 10 documents are returned. Note that your total number of documents may be slightly different than the value shown here.
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab02_match_all.png">
+            </li>
+            <li>
+                The <kbd>match_all</kbd> query is implicit if no query is defined. Below the default <kbd>match_all</kbd> request, enter the following request and see that the results are the same.
+                <pre><code>GET _search</code></pre>
+            </li>
+            <li>
+                Below the previous <kbd>_search</kbd> request, enter the following request to get basic cluster and node information.
+                <pre><code>GET /</code></pre>
+
+                When you execute this request, you should see a response similar to:
+                <pre><code>{
+  "name" : "Xe6KFUY",
+  "cluster_name" : "elasticsearch",
+  "cluster_uuid" : "tabF6ZRLTLq7pF9B1brrIg",
+  "version" : {
+    "number" : "6.5.1",
+    "build_flavor" : "default",
+    "build_type" : "tar",
+    "build_hash" : "8c58350",
+    "build_date" : "2018-11-16T02:22:42.182257Z",
+    "build_snapshot" : false,
+    "lucene_version" : "7.5.0",
+    "minimum_wire_compatibility_version" : "5.6.0",
+    "minimum_index_compatibility_version" : "5.0.0"
+  },
+  "tagline" : "You Know, for Search"
+}</code></pre>
+                <ul>
+                    <li>What is the version of your Elasticsearch instance?</li>
+                    <div class="solution" id="solution0"><input id="question0" data-value="answer" type="button" value="Hide answer:"><div id="answer0" style="display: block;">The version of the node is value of the "version.number" field (<kbd>6.5.1</kbd> above).</div></div>
+                    <li>What is the name of your node?</li>
+                    <div class="solution" id="solution1"><input id="question1" data-value="answer" type="button" value="Hide answer:"><div id="answer1" style="display: block;">The name of the node is the value of the "name" field (<kbd>Xe6KFUY</kbd> above, but it will be different for your node).</div></div>
+                    <li>What is the name of your cluster?</li>
+                    <div class="solution" id="solution2"><input id="question2" data-value="answer" type="button" value="Hide answer:"><div id="answer2" style="display: block;">In the output above, the cluster is named <kbd>"elasticsearch"</kbd>. Your cluster should be named <kbd>"elasticsearch"</kbd> also.</div></div>
+                    <li>How did these names get assigned to your node and cluster?</li>
+                    <div class="solution" id="solution3"><input id="question3" data-value="answer" type="button" value="Hide answer:"><div id="answer3" style="display: block;">The cluster name <kbd>"elasticsearch"</kbd> is the default, and the node name is randomly generated.</div></div>
+                </ul>
+            </li>
+
+            <li>
+                If you want to see what data you have in an Elasticsearch cluster, you can run the following command to get a list of all indices:
+                <pre><code>GET /_cat/indices?v</code></pre>
+
+                You should see a response similar to:
+                <pre><code>health status index        uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+yellow open   logs_server3 NaNptoaZS0-JFSuic-iM2w   5   1     584814            0    205.9mb        205.9mb
+yellow open   blogs        AvXr9GhyRDmf0YFt0deb9w   5   1       1594            0      6.1mb          6.1mb
+green  open   .kibana_1    hRbJq6fHQYqwvtPKoMSlFA   1   0          7            0     38.6kb         38.6kb
+yellow open   logs_server1 G7GSLaWyTEac4y07DLgw-w   5   1     582063            0    202.6mb        202.6mb
+yellow open   logs_server2 dU_NG_94RgqCq_TgIEEQLA   5   1     584599            0    206.1mb        206.1mb</code></pre>
+                <ul>
+                    <li>Run the command again but without the <kbd>?v</kbd>?</li> What does <kbd>?v</kbd> add to the response?
+                    <div class="solution" id="solution4"><input id="question4" data-value="answer" type="button" value="Hide answer:"><div id="answer4" style="display: block;"><kbd>?v</kbd> is used to include the column header in the response.</div></div>
+                    <li>How many indices exist in the cluster and what are their names?</li>
+                    <div class="solution" id="solution5"><input id="question5" data-value="answer" type="button" value="Hide answer:"><div id="answer5" style="display: block;">There are 5 indices: <kbd>.kibana_1</kbd>, <kbd>blogs</kbd>, <kbd>logs_server1</kbd>, <kbd>logs_server2</kbd> and <kbd>logs_server3</kbd>.</div></div>
+                    <li>How many documents are indexed in the <kbd>blogs</kbd> index?</li>
+                    <div class="solution" id="solution6"><input id="question6" data-value="answer" type="button" value="Hide answer:"><div id="answer6" style="display: block;">There are 1594 documents index and the size of the index is approximately 6.1mb.</div></div>
+                    <li>What about the other values?</li>
+                    <div class="solution" id="solution7"><input id="question7" data-value="answer" type="button" value="Hide answer:"><div id="answer7" style="display: block;">We are going to discuss them in future chapters!</div></div>
+                </ul>
+            </li>
+            <li>
+                Stop Elasticsearch by hitting <kbd>Ctrl+c</kbd> in the terminal tab where you have Elasticsearch running. You should see the following output, and the command prompt should also appear:
+                <pre class="bash">[2018-11-23T17:44:38,591][INFO ][o.e.x.m.j.p.NativeController] [Xe6KFUY] Native controller process has stopped - no new native processes can be started
+[2018-11-23T17:44:38,608][INFO ][o.e.n.Node               ] [Xe6KFUY] stopping ...
+[2018-11-23T17:44:38,623][INFO ][o.e.x.w.WatcherService   ] [Xe6KFUY] stopping watch service, reason [shutdown initiated]
+[2018-11-23T17:44:38,762][INFO ][o.e.n.Node               ] [Xe6KFUY] stopped
+[2018-11-23T17:44:38,763][INFO ][o.e.n.Node               ] [Xe6KFUY] closing ...
+[2018-11-23T17:44:38,774][INFO ][o.e.n.Node               ] [Xe6KFUY] closed
+[elastic@server1 ~]$</pre>
+            </li>
+            <li>
+                The current cluster and node names have been automatically defined. Let's change both to values that make more sense:
+                <ul>
+                    <li>
+                        Open the <kbd>elasticsearch.yml</kbd> file using a text editor of your choice: nano, emacs, or vi. If you are not familiar with command-line editors, we suggest you use nano (click <a target="_blank" href="http://ec2-18-194-246-209.eu-central-1.compute.amazonaws.com/instructions/nano_tutorial.html">here</a> for tips on using nano). You will find the file in the <kbd>elasticsearch-6.5.1/config</kbd> directory. Notice that every line in this file is commented out. For example, if you want to use nano:
+                        <pre class="bash">nano elasticsearch-6.5.1/config/elasticsearch.yml</pre>
+                    </li>
+                    <li>
+                        Set the name of the cluster to <b>"my_cluster"</b>:
+                        <pre><code># Use a descriptive name for your cluster:
+#
+cluster.name: my_cluster</code></pre>
+                    </li>
+                    <li>
+                        Save your changes to <kbd>elasticsearch.yml</kbd>. To save changes to a file using nano, hit <kbd>Ctrl+x</kbd> to exit nano, then press <kbd>"y"</kbd> to save your changes. Hit <kbd>"Enter"</kbd> when prompted for a file name.
+                    </li>
+                    <li>
+                        Run the following command to start Elasticsearch with the node name <strong>node1</strong>:
+                        <pre class="bash">./elasticsearch-6.5.1/bin/elasticsearch -E network.host=0.0.0.0 -E node.name=node1</pre>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Now check both cluster and indices information to see what changed:
+                <pre><code>GET /
+GET /_cat/indices?v</code></pre>
+
+                The output should be very similar to the previous execution, except that the cluster and node names have changed. Elasticsearch internally uses cluster and node IDs - the cluster and node names are there for humans. This means that you can change cluster and node names at any point without affecting the existing data, but you still need to restart the cluster (so it's probably not something you would do very often in your Production environment).
+            </li>
+
+            <li>
+                Elasticsearch is running using the default heap size, which is 1GB. Let's change it to 512MB. Stop Elasticsearch and open the <kbd>elasticsearch-6.5.1/config/jvm.options</kbd> file using a text editor of your choice. Update both min (<kbd>-Xms</kbd>) and max (<kbd>-Xmx</kbd>) heap sizes to 512MB:
+                <pre><code># Xms represents the initial size of total heap space
+# Xmx represents the maximum size of total heap space
+
+-Xms512m
+-Xmx512m</code></pre></li>
+
+            <li>Restart the node with the same command line options as before, so your changes can take effect.
+            </li>
+
+            <li>
+                Elasticsearch comes with a <kbd>basic</kbd> license by default, which does not have security available. So, let's start a trial in the next step.
+            </li>
+            <li>
+                To start a 30-day trial license you can use either the License Management UI or the Start Trial API. Let's use the UI.
+                <ul>
+                    <li>Click on the <strong>Management</strong> link in the left-hand toolbar of Kibana, then click on <strong>License Management</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_trial1.png"></li>
+
+                    <li>Kibana will show you that the basic license is active. Click on <strong>Start trial</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_trial2.png"></li>
+
+                    <li>After that Kibana will show you a window that lists the features included in the trial. Click on <strong>Start my trial</strong>:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_trial3.png" style="width:40%;height:40%"></li>
+
+                    <li>Finally, Kibana will show you that the trial license is active:<br>
+
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_trial4.png"></li>
+                </ul>
+                Note that you could also have started the 30-day trial license through the Start Trial API:
+                <pre><code>POST _xpack/license/start_trial?acknowledge=true</code></pre>
+            </li>
+            <li>
+                After starting the trial license you will have security available, but not enabled. This happens because the trial license comes with <kbd>xpack.security.enabled</kbd> set to <kbd>false</kbd> by default. However, to have security enabled you have to set it to <kbd>true</kbd> on each node of your cluster. So, let's do that in the next steps.
+            </li>
+            <li>
+                Stop Elasticsearch and stop Kibana on <kbd>server1</kbd>.
+            </li>
+            <li>
+                Set <kbd>xpack.security.enabled</kbd> to <kbd>true</kbd> on your node.
+                <div class="solution" id="solution8"><input id="question8" data-value="answer" type="button" value="Hide answer:"><div id="answer8" style="display: block;">
+                    Add the line below to the end of the configuration file (<kbd>elasticsearch.yml</kbd>) of your node. Note that if you have more nodes in your cluster, then you must add this line in each node of your cluster. You will see how to do that in the next labs, when you are going to start a 3-node cluster.
+                    <pre><code>xpack.security.enabled: true</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Start your Elasticsearch node with the same command line options as before.
+                <div class="solution" id="solution9"><input id="question9" data-value="answer" type="button" value="Hide answer:"><div id="answer9" style="display: block;"><pre class="bash">./elasticsearch-6.5.1/bin/elasticsearch -E network.host=0.0.0.0 -E node.name=node1</pre></div></div>
+            </li>
+            <li>
+                Try running the following command from a command prompt:
+                <pre class="bash">curl 'server1:9200/_cat/nodes?pretty'</pre>
+                You should get a security error, because you are trying to access a secure cluster without any credentials:
+                <pre class="bash">{
+  "error" : {
+    "root_cause" : [
+      {
+        "type" : "security_exception",
+        "reason" : "missing authentication token for REST request [/_cat/nodes?pretty]",
+        "header" : {
+          "WWW-Authenticate" : "Basic realm=\"security\" charset=\"UTF-8\""
+        }
+      }
+    ],
+    "type" : "security_exception",
+    "reason" : "missing authentication token for REST request [/_cat/nodes?pretty]",
+    "header" : {
+      "WWW-Authenticate" : "Basic realm=\"security\" charset=\"UTF-8\""
+    }
+  },
+  "status" : 401
+}</pre>
+            </li>
+            <li>
+                You need to create some credentials, which is accomplished by running the following script:
+                <pre class="bash">./elasticsearch-6.5.1/bin/elasticsearch-setup-passwords interactive</pre>
+                You will be prompted for a password for each one of the reserved users. Just enter <kbd>password</kbd> for all the passwords to keep things simple:
+                <pre class="bash">Initiating the setup of passwords for reserved users elastic,apm_system,kibana,logstash_system,beats_system,remote_monitoring_user.
+You will be prompted to enter passwords as the process progresses.
+Please confirm that you would like to continue [y/N]y
+
+
+Enter password for [elastic]:
+Reenter password for [elastic]:
+Enter password for [apm_system]:
+Reenter password for [apm_system]:
+Enter password for [kibana]:
+Reenter password for [kibana]:
+Enter password for [logstash_system]:
+Reenter password for [logstash_system]:
+Enter password for [beats_system]:
+Reenter password for [beats_system]:
+Enter password for [remote_monitoring_user]:
+Reenter password for [remote_monitoring_user]:
+Changed password for user [apm_system]
+Changed password for user [kibana]
+Changed password for user [logstash_system]
+Changed password for user [beats_system]
+Changed password for user [remote_monitoring_user]
+Changed password for user [elastic]</pre>
+            </li>
+            <li>
+                Now, you can use the <kbd>elastic</kbd> user to run the command that failed due to lack of credentials:
+                <pre class="bash">curl -u elastic --anyauth 'server1:9200/_cat/nodes?pretty'</pre>
+                You will be prompted for the <kbd>elastic</kbd> user password. Just enter <kbd>password</kbd> and you will see the list of nodes in your cluster:
+                <pre class="bash">Enter host password for user 'elastic':
+172.18.0.2 37 90 1 0.05 0.81 1.45 mdi * node1</pre>
+            </li>
+            <li>
+                Startup Kibana again on <kbd>server1</kbd>.
+                <pre class="bash">./kibana-6.5.1-linux-x86_64/bin/kibana --host=0.0.0.0</pre>
+
+                You should see the following output:
+                <pre class="bash">log   [18:03:17.485] [error][status][plugin:reporting@6.5.1] Status changed from uninitialized to red - [security_exception] missing authentication token for REST request [/_xpack], with { header={ WWW-Authenticate="Basic realm=\"security\" charset=\"UTF-8\"" } }</pre>
+
+            </li>
+            <li>
+                The issue you are having now is that Kibana is not authenticated with your Elasticsearch cluster, which can be accomplished by adding the <kbd>"kibana"</kbd> username and the password you just defined in the <kbd>elasticsearch-setup-passwords</kbd> script to the Kibana config file. Stop Kibana and add the following settings to <kbd>kibana-6.5.1-linux-x86_64/config/kibana.yml</kbd>:
+                <pre><code>elasticsearch.username: "kibana"
+elasticsearch.password: "password"</code></pre>
+            </li>
+            <li>
+                Startup Kibana again on <kbd>server1</kbd>. Try connecting to your Kibana instance from a new web browser tab, and you should be able to login this time. Login as the <kbd>"elastic"</kbd> user with password <kbd>"password"</kbd>:
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_login.png">
+            </li>
+            <li>
+                Notice that you have gained a few tools in Kibana - based on the new links down the left toolbar.
+            </li>
+            <li>
+                Click on the <kbd>"Management"</kbd> link in the left toolbar. Notice you have some new settings to configure now that Elastic security is enabled:
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_management.png">
+            </li>
+            <li>
+                Click on the <kbd>"Users"</kbd> link. Notice there are some users defined - these are the users that you assigned passwords to using the <kbd>elasticsearch-setup-passwords</kbd> script earlier. Their passwords are all currently <kbd>"password"</kbd>, but you could change them here in Kibana. Notice the <kbd>"elastic"</kbd> user is assigned the <kbd>"superuser"</kbd> role, meaning the <kbd>"elastic"</kbd> user can edit all configurable settings of the cluster.
+            </li>
+            <li>
+                Go back to the <kbd>"Management"</kbd> page of Kibana and click on the <kbd>"Roles"</kbd> link. Notice there are a lot of existing roles defined. These are used by Elasticsearch and the other components of the Elastic Stack. Notice these roles are all <kbd>"Reserved"</kbd> and you can not edit or delete them.
+            </li>
+            <li>
+                Create a new role named <kbd>"blogs_readonly"</kbd> that satisfies the following criteria:
+                <ul>
+                    <li>
+                        The user has no cluster privileges
+                    </li>
+                    <li>
+                        The user only has access to indices that match the pattern <kbd>blogs*</kbd>
+                    </li>
+                    <li>
+                        The index privileges are <kbd>read</kbd>, <kbd>read_cross_cluster</kbd>, <kbd>view_index_metadata</kbd>, and <kbd>monitor</kbd>
+                    </li>
+                </ul>
+                <div class="solution" id="solution10"><input id="question10" data-value="answer" type="button" value="Hide answer:"><div id="answer10" style="display: block;">
+                    <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_new_role.png">
+                </div></div>
+            </li>
+            <li>
+                Create a new user named <kbd>"blogs_user"</kbd> that satisfies the following criteria:
+                <ul>
+                    <li>password is <kbd>"password"</kbd></li>
+                    <li>enter <b>Blog User</b> for the name of the user</li>
+                    <li>use your own email address</li>
+                    <li>assign the user to <strong>two</strong> roles: <kbd>blogs_readonly</kbd> and <kbd>kibana_user</kbd></li>
+                </ul>
+                    <i><b>NOTE: Make sure to add the <kbd>kibana_user</kbd> role, otherwise you won't be able to login to Kibana with <kbd>blogs_user</kbd>.</b></i>
+                <div class="solution" id="solution11"><input id="question11" data-value="answer" type="button" value="Hide answer:"><div id="answer11" style="display: block;">
+                    <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab09_new_user.png">
+                </div></div>
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you learned how to use console to interact with Elasticsearch. You also checked basic cluster information and changed a few cluster configurations. Finally, you secured your cluster using Elastic security and then you saw how to create a user that has limited access to specific indices. Note that the trial includes other features besides security, such as alerting, reporting, graph, and machine learning.
+        </p>
+        <h3>End of Lab 2</h3>
+
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab3"></a>
+        <h2>Lab 3: CRUD Operations</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will define the structure of a few documents and perform CRUD operations. You will also check the index permissions for the user you created in the previous lab.
+        </p>
+
+        <ol>
+            <li>
+                Imagine a dataset that is row-oriented (e.g. spreadsheet or a traditional database). How would you write a JSON document based on sample entries that look like the following? Think about field structure and empty fields:
+
+                <table class="labTable" border="1" text-align="center">
+                    <tbody><tr>
+                        <th>id</th> <th>title</th> <th>category</th> <th>date</th> <th>author_first_name</th> <th>author_last_name</th> <th>author_company</th>
+                    </tr>
+                    <tr>
+                        <td>1</td> <td>Better query execution</td> <td>Engineering</td> <td>July 15, 2015</td> <td>Adrien</td> <td>Grand</td> <td>Elastic</td>
+                    </tr>
+                    <tr>
+                        <td>2</td> <td>The Story of Sense</td> <td></td> <td>May 28, 2015</td> <td>Boaz</td> <td>Leskes</td> <td></td>
+                    </tr>
+                </tbody></table>
+
+                <div class="solution" id="solution12"><input id="question12" data-value="answer" type="button" value="Hide answer:"><div id="answer12" style="display: block;">
+                    Each entry contains a flattened structure, so <kbd>author_first_name</kbd> is not specifically related to <kbd>author_last_name</kbd> and <kbd>author_company</kbd>. While in relational databases you can use relations to model it, in document-oriented stores we can preserve structures within a single document. So the entry could be written as:
+                    <pre><code>{
+  "id": "1",
+  "title": "Better query execution",
+  "category": "Engineering",
+  "date":"July 15, 2015",
+  "author":{
+    "first_name": "Adrian",
+    "last_name": "Grand",
+    "company": "Elastic"
+  }
+}</code></pre>
+                    Notice that author is now an object with 3 fields. For the second entry we can do the same thing to the author structure, but there are also empty fields. In a document store, empty fields can be just omitted.
+                    <pre><code>{
+  "id": "2",
+  "title": "The Story of Sense",
+  "date":"May 28, 2015",
+  "author":{
+    "first_name": "Boaz",
+    "last_name": "Leskes"
+  }
+}</code></pre>
+                    Notice we don't have <kbd>category</kbd> or <kbd>author.company</kbd> fields in this document. Other options would be to index these fields with a <kbd>null</kbd> value (similar effect to omiting) or empty strings (completely different effect: the field exists and its value is an empty string).
+                </div></div>
+            </li>
+
+            <li>
+                Now that we have defined the documents, let's index them. Notice that the <kbd>id</kbd> field defined inside the documents is just a normal field like any other. The actual document <kbd>_id</kbd> is defined in the request URL when you index the documents. Index both JSON documents into the <kbd>my_blogs</kbd> index. Use <kbd>_doc</kbd> for the type and their respective ids.
+                <div class="solution" id="solution13"><input id="question13" data-value="answer" type="button" value="Hide answer:"><div id="answer13" style="display: block;"><pre><code>PUT my_blogs/_doc/1
+{
+  "id": "1",
+  "title": "Better query execution",
+  "category": "Engineering",
+  "date":"July 15, 2015",
+  "author":{
+    "first_name": "Adrian",
+    "last_name": "Grand",
+    "company": "Elastic"
+  }
+}
+PUT my_blogs/_doc/2
+{
+  "id": "2",
+  "title": "The Story of Sense",
+  "date":"May 28, 2015",
+  "author":{
+    "first_name": "Boaz",
+    "last_name": "Leskes"
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                The index operation can also be executed without specifying the <kbd>_id</kbd>. In such a case, you should use a <kbd>POST</kbd> instead of a <kbd>PUT</kbd> and an <kbd>_id</kbd> will be generated automatically. Index the following document without an id and check the <kbd>_id</kbd> in the response. (Make sure you use <kbd>POST</kbd>.)
+                <pre><code>{
+  "id": "57",
+  "title": "Phrase Queries: a world without Stopwords",
+  "date":"March 7, 2016",
+  "category": "Engineering",
+  "author":{
+    "first_name": "Gabriel",
+    "last_name": "Moskovicz"
+  }
+}</code></pre>
+                <div class="solution" id="solution14"><input id="question14" data-value="answer" type="button" value="Hide answer:"><div id="answer14" style="display: block;">
+                    <pre><code>POST my_blogs/_doc/
+{
+  "id": "57",
+  "title": "Phrase Queries: a world without Stopwords",
+  "date":"March 7, 2016",
+  "category": "Engineering",
+  "author":{
+    "first_name": "Gabriel",
+    "last_name": "Moskovicz"
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Use a <kbd>GET</kbd> command to retrieve the document with <kbd>_id</kbd> of <kbd>1</kbd> and type <kbd>_doc</kbd> from the <kbd>my_blogs</kbd> index.
+                <div class="solution" id="solution15"><input id="question15" data-value="answer" type="button" value="Hide answer:"><div id="answer15" style="display: block;">
+                    <pre><code>GET my_blogs/_doc/1</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Delete the  document with the <kbd>_id</kbd> of <kbd>2</kbd> from the <kbd>my_blogs</kbd> index. Verify it was deleted by trying to <kbd>GET</kbd> it again. You should get the following response:
+                <pre><code>{
+  "_index": "my_blogs",
+  "_type": "_doc",
+  "_id": "2",
+  "found": false
+}</code></pre>
+                <div class="solution" id="solution16"><input id="question16" data-value="answer" type="button" value="Hide answer:"><div id="answer16" style="display: block;">
+                    <pre><code>DELETE my_blogs/_doc/2</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Finally, delete the <kbd>my_blogs</kbd> index.
+                <div class="solution" id="solution17"><input id="question17" data-value="answer" type="button" value="Hide answer:"><div id="answer17" style="display: block;">
+                    <pre><code>DELETE my_blogs</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Logout of Kibana:
+
+                <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab03_logout.png" height="40%" width="40%"></li>
+            
+
+            <li>Log back in to Kibana as the <kbd>blogs_user</kbd>. (Recall that the password is <kbd>password</kbd>.) From the <kbd>Console</kbd>, try running the following commands. Notice the search works fine, but the other commands fail due to security restrictions on <kbd>blogs_user</kbd>:
+                <pre><code>GET blogs*/_search
+
+GET _cat/indices
+
+PUT blogs/_doc/1
+{
+  "a": "b"
+}
+
+DELETE blogs</code></pre>
+            </li>
+            <li>
+                You are going to want to log out as the <kbd>blogs_user</kbd> and log back in as the <kbd>elastic</kbd> user.
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you defined the structure of a few documents and performed CRUD operations. You also verified that the permissions you defined for <kbd>blogs_user</kbd> are being enforced properly.
+        </p>
+        <h3>End of Lab 3</h3>
+
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab4"></a>
+        <h2>Lab 4: Querying Data</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will write various queries that search documents in the <kbd>blogs</kbd> index using the Search API. You will use queries like <kbd>match</kbd>, <kbd>match_phrase</kbd>, <kbd>range</kbd> and <kbd>bool</kbd>.
+        </p>
+
+        <ol>
+            <li>
+                Write and execute a query that matches all the documents in the <kbd>blogs</kbd> index. You should have a total of 1594 hits:
+                <pre class="bash">"hits": {
+  "total": 1594</pre>
+                <div class="solution" id="solution18"><input id="question18" data-value="answer" type="button" value="Hide answer:"><div id="answer18" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Add the <kbd>"size"</kbd> parameter to your previous request and set it to <kbd>100</kbd>. You should now see 100 blogs in the results.
+                <div class="solution" id="solution19"><input id="question19" data-value="answer" type="button" value="Hide answer:"><div id="answer19" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "size": 100,
+  "query": {
+    "match_all": {}
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                You probably noticed that the <kbd>content</kbd> field is large, which makes it more difficult to navigate the result set. In these cases where the output it too verbose you can use <kbd>"_source"</kbd> to filter the output, but keep in mind that this is done in the JSON level and therefore it adds overhead to Elasticsearch (though it decreases the amount of data transferred in the network).
+                <ul>
+                    <li> You can use <kbd>"_source"</kbd> with <kbd>"excludes"</kbd> pattern to remove the fields you don't want. To demonstrate, run the following query below, which does not include the <kbd>content</kbd> field in the output:
+                    <pre><code>GET blogs/_search
+{
+  "size": 100,
+  "_source": {
+    "excludes": ["content"]
+  },
+  "query": {
+    "match_all": {}
+  }
+}</code></pre>
+                    </li>
+                    <li> You can also use <kbd>"_source"</kbd> with <kbd>"includes"</kbd> pattern to specify the fields you want. For example, run the following query below, which includes only the fields <kbd>author</kbd> and <kbd>title</kbd> in the output:
+                    <pre><code>GET blogs/_search
+{
+  "size": 100,
+  "_source": {
+    "includes": ["author","title"]
+  },
+  "query": {
+    "match_all": {}
+  }
+}</code></pre>
+                    </li>
+                    <li> Alternatively, when just including fields you can list them in an array without the <kbd>"includes"</kbd> clause. For example, the previous query can be simplified as follows:
+                    <pre><code>GET blogs/_search
+{
+  "size": 100,
+  "_source": ["author","title"],
+  "query": {
+    "match_all": {}
+  }
+}</code></pre>
+                    </li>
+                </ul>
+            </li>
+
+            <li>Write and execute a query that hits all blog posts published in May, 2017. The response should tell you that there are 44 hits in total, but notice you only get back 10 actual hits because the default value of <kbd>size</kbd> for a query is <kbd>10</kbd>:
+                    <pre class="bash">"hits": {
+  "total": 44</pre>
+
+                <div class="solution" id="solution20"><input id="question20" data-value="answer" type="button" value="Hide answer:"><div id="answer20" style="display: block;">
+                    A <kbd>range</kbd> query works well here:
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "range": {
+      "publish_date": {
+        "gte": "2017-05-01",
+        "lte": "2017-05-31"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+
+            </li>
+
+            <li>
+                Write and execute a <kbd>match</kbd> query for blogs that have the term <kbd>"elastic"</kbd> in the <kbd>"title"</kbd> field. Your should get 260 hits:
+                <pre class="bash">"hits": {
+    "total": 260,</pre>
+                <div class="solution" id="solution21"><input id="question21" data-value="answer" type="button" value="Hide answer:"><div id="answer21" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "title": "elastic"
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Now run a <kbd>match</kbd> query for <kbd>"elastic stack"</kbd> in the <kbd>title</kbd> field. Why did the number of hits go up by adding a term to the <kbd>match</kbd> query?
+                <br>
+                <pre class="bash">"hits": {
+    "total": 263,</pre>
+                <div class="solution" id="solution22"><input id="question22" data-value="answer" type="button" value="Hide answer:"><div id="answer22" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "title": "elastic stack"
+    }
+  }
+}</code></pre>
+                    <p>
+                        The search returns blogs with "elastic" <em>or</em> "stack", so there are additional hits from documents with only "stack" in the <kbd>title</kbd>.
+                    </p>
+                </div></div>
+            </li>
+
+            <li>
+                Your search for <kbd>"elastic stack"</kbd> cast a very wide net. The top hits look good, but the precision is not great for many of the lower-scoring hits, especially those products that have <kbd>"elastic"</kbd> in the name but not <kbd>"stack"</kbd>. Change the <kbd>operator</kbd> of your previous <kbd>match</kbd> query to <kbd>and</kbd>, then run it again. Notice this increases the precision, as there are now only 70 hits:
+                <pre class="bash">"hits": {
+    "total": 70,</pre>
+                <div class="solution" id="solution23"><input id="question23" data-value="answer" type="button" value="Hide answer:"><div id="answer23" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "elastic stack",
+        "operator": "and"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Write a query for each of the following searches:
+                <ul>
+                    <li>
+                        blogs that have the word <kbd>"search"</kbd> in their <kbd>"content"</kbd> field.
+                        <div class="solution" id="solution24"><input id="question24" data-value="answer" type="button" value="Hide answer:"><div id="answer24" style="display: block;">
+                            There are 432 blogs with the  word <kbd>"search"</kbd> in their <kbd>"content"</kbd> field.
+                            <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "content": "search"
+    }
+  }
+}</code></pre>
+                        </div></div>
+                    </li>
+                    <li>
+                        blogs that have <kbd>"search"</kbd> <em>or</em> <kbd>"analytics"</kbd> in their <kbd>"content"</kbd> field.
+                        <div class="solution" id="solution25"><input id="question25" data-value="answer" type="button" value="Hide answer:"><div id="answer25" style="display: block;">
+                            There are 476 blogs with the terms  <kbd>"search"</kbd> <em>or</em> <kbd>"analytics"</kbd> in their <kbd>"content"</kbd> field.
+                            <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "content": "search analytics"
+    }
+  }
+}</code></pre>
+                        </div></div>
+                    </li>
+
+                    <li>
+                       blogs that have <kbd>"search"</kbd> <em>and</em> <kbd>"analytics"</kbd> in their <kbd>"content"</kbd> field.
+                        <div class="solution" id="solution26"><input id="question26" data-value="answer" type="button" value="Hide answer:"><div id="answer26" style="display: block;">
+                            There are 110 blogs with the terms  <kbd>"search"</kbd> <em>and</em> <kbd>"analytics"</kbd> in their <kbd>"content"</kbd> field.
+                            <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "content": {
+        "query": "search analytics",
+        "operator": "and"
+      }
+    }
+  }
+}</code></pre>
+                        </div></div>
+                    </li>
+                </ul>
+            </li>
+
+            <li>
+                Run a <kbd>match_phrase</kbd> search for <kbd>search analytics</kbd> in the <kbd>content</kbd> field that returns the top 3 hits. You should get 6 hits total.
+                <div class="solution" id="solution27"><input id="question27" data-value="answer" type="button" value="Hide answer:"><div id="answer27" style="display: block;">
+                    There are 6 blogs with the terms <kbd>search analytics</kbd> in the <kbd>content</kbd> field where the term <kbd>analytics</kbd> is one position after the term <kbd>search</kbd>.
+                    <pre><code>GET blogs/_search
+{
+  "size": 3,
+  "query": {
+    "match_phrase": {
+      "content": "search analytics"
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                The phrase <kbd>"search and analytics"</kbd> is fairly common in the blog content. Update the previous <kbd>match_phrase</kbd> query so that it allows for 1 term (any word - not just "and") to appear between <kbd>"search"</kbd> and <kbd>"analytics"</kbd>. How many hits do you see now?
+                <div class="solution" id="solution28"><input id="question28" data-value="answer" type="button" value="Hide answer:"><div id="answer28" style="display: block;">
+                    There are 41 blogs with the terms <kbd>"search analytics"</kbd> in the <kbd>"content"</kbd> field where the term <kbd>analytics</kbd> is one or two positions after the term <kbd>search</kbd>.
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match_phrase": {
+      "content": {
+        "query": "search analytics",
+        "slop": 1
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Run a query that answers the question: <em> "Which blogs have <kbd>performance</kbd> or <kbd>optimizations</kbd> or  <kbd>improvements</kbd> in the <kbd>content</kbd> field?"</em> You should get the following hits: <pre class="bash">"hits": {
+    "total": 374,</pre>
+                <div class="solution" id="solution29"><input id="question29" data-value="answer" type="button" value="Hide answer:"><div id="answer29" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "content": "performance optimizations improvements"
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Run a query that answers the question: <em>"Which blogs have a <kbd>content</kbd> field that includes <strong>at least 2</strong> of the terms <kbd>performance</kbd> or <kbd>optimizations</kbd> or <kbd>improvements</kbd>?"</em> You should get the following hits this time:
+                <pre class="bash">"hits": {
+    "total": 82,</pre>
+                <div class="solution" id="solution30"><input id="question30" data-value="answer" type="button" value="Hide answer:"><div id="answer30" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "content": {
+        "query" : "performance optimizations improvements",
+        "minimum_should_match" : 2
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Let's analyze the hits from the <kbd>"performance optimizations improvements"</kbd> search:
+                <ul>
+                    <li>
+                        What was the maximum <kbd>_score</kbd>?
+
+                        <div class="solution" id="solution31"><input id="question31" data-value="answer" type="button" value="Hide answer:"><div id="answer31" style="display: block;">
+                            The exact max score may vary, but should be around 11.4
+                        </div></div>
+                    </li>
+
+                    <li>
+                        If you were searching for <kbd>"performance optimizations improvements"</kbd> to do some fine tuning in your deployment, do you see any issues with some of the results from the group of documents with the highest score?
+
+                        <div class="solution" id="solution32"><input id="question32" data-value="answer" type="button" value="Hide answer:"><div id="answer32" style="display: block;">
+                            Most of them talk about improvements in a specific release of the Elastic Stack. Those blog posts don't talk about performance tuning a cluster.
+                        </div></div>
+                    </li>
+                </ul>
+            </li>
+
+            <li>
+                It looks like releases usually come with performance optimizations and improvements. Assuming you do not want to upgrade your deployment, update the previous query so that it <kbd>must_not</kbd> contain <kbd>released</kbd> or <kbd>releases</kbd> or <kbd>release</kbd> in the <kbd>title</kbd> field. Your top hits look better now, and notice the number of total hits dropped down to 47.
+
+                <div class="solution" id="solution33"><input id="question33" data-value="answer" type="button" value="Hide answer:"><div id="answer33" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "content": {
+              "query": "performance optimizations improvements",
+              "minimum_should_match": 2
+            }
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "match": {
+            "title": "release releases released"
+          }
+        }
+      ]
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                In the previous query, let's say we are more interested in blogs about Elasticsearch. How could you rank the results so that the documents that mention <kbd>"elasticsearch"</kbd> score higher?
+                <div class="solution" id="solution34"><input id="question34" data-value="answer" type="button" value="Hide answer:"><div id="answer34" style="display: block;"><p>There is no single "correct" answer here, but adding a <kbd>should</kbd> clause to the previous query to match <kbd>"elasticsearch"</kbd> in the <kbd>"category"</kbd>, <kbd>"content"</kbd> or <kbd>"title"</kbd> field produces some relevant top hits. Below an example with <kbd>"title"</kbd> field:
+                    </p>
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "content": {
+              "query": "performance optimizations improvements",
+              "minimum_should_match": 2
+            }
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "match": {
+            "title": "release releases released"
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "title": "elasticsearch"
+          }
+        }
+      ]
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <!--          <li>
+<strong>OPTIONAL:</strong> Go back to each exercise of this lab and redo it using the <kbd>query_string</kbd> query in the DSL and in the URL. For example exercise 3 would result in:
+
+<pre><code>GET blogs/_search?q=title:elastic</code></pre>
+
+<pre><code>GET blogs/_search
+{
+"query": {
+"query_string": {
+"query": "title:elastic"
+}
+}
+}</code></pre>
+<!-- <div class="solution"> TODO add answers with query_string
+<pre><code>GET blogs/_search
+{
+
+}</code></pre>
+</div>
+</li>
+-->
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you became familiar with how to write search queries, one of the most important and frequent tasks that an Elasticsearch Engineer needs to perform. We still have a lot of search details to discuss in this course, but this lab gives you an idea of how quickly and easily Elasticsearch can be used to search a dataset.
+        </p>
+        <h3>End of Lab 4</h3>
+        <hr>
+
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab5"></a>
+        <h2>Lab 5: Text Analysis and Mappings</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will become familiar with how to read an index mapping and how to define your own mapping. Also, you will practice with the <kbd>_analyze</kbd> API to explore the different ways to analyze text.
+        </p>
+
+        <ol>
+            <li>
+                Let's start this lab by analyzing the dynamic mapping behavior.
+                Index the following sample document into an index named <kbd>tmp_blogs.</kbd> Use <kbd>"_doc"</kbd> for the type.
+                <pre><code>{
+  "title": "Elastic Cloud and Meltdown",
+  "publish_date": "2018-01-07T23:00:00.000Z",
+  "author": "Elastic Engineering",
+  "category": "Engineering",
+  "content": " Elastic is aware of the Meltdown and Spectre vulnerabilities...",
+  "url": "/blog/elastic-cloud-and-meltdown",
+  "locales": ["de-de","fr-fr"]
+}</code></pre>
+                <div class="solution" id="solution35"><input id="question35" data-value="answer" type="button" value="Hide answer:"><div id="answer35" style="display: block;">
+                    <pre><code>PUT tmp_blogs/_doc/1
+{
+  "title": "Elastic Cloud and Meltdown",
+  "publish_date": "2018-01-07T23:00:00.000Z",
+  "author": "Elastic Engineering",
+  "category": "Engineering",
+  "content": " Elastic is aware of the Meltdown and Spectre vulnerabilities...",
+  "url": "/blog/elastic-cloud-and-meltdown",
+  "locales": ["de-de","fr-fr"]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                View the mapping of <kbd>tmp_blogs</kbd> that was automatically created.
+
+                <div class="solution" id="solution36"><input id="question36" data-value="answer" type="button" value="Hide answer:"><div id="answer36" style="display: block;">
+                    <pre><code>GET tmp_blogs/_mappings</code></pre>
+
+                    Elasticsearch should return the following:
+                    <pre><code>{
+  "tmp_blogs": {
+    "mappings": {
+      "_doc": {
+        "properties": {
+          "author": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "category": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "content": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "locales": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "publish_date": {
+            "type": "date"
+          },
+          "title": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "url": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                What would you change, in regards to data types, in the current mapping of <kbd>tmp_blogs</kbd> in order to make it production-ready for our blogs dataset?
+
+                <div class="solution" id="solution37"><input id="question37" data-value="answer" type="button" value="Hide answer:"><div id="answer37" style="display: block;">
+                    Let's analyze every field mapped:
+                    <ul>
+                        <li>The <kbd>publish_date</kbd> field is correctly mapped as date.</li>
+
+                        <li>The <kbd>author</kbd> field is a string and is mapped as both <kbd>text</kbd> and <kbd>keyword</kbd>, which is great as we can search for authors, but also aggregate (discussed later) them. Similarly, the fields <kbd>title</kbd> and <kbd>URL</kbd> are mapped correctly as we may want to search and sort on those fields.</li>
+
+                        <li><kbd>locales</kbd> is an array of fixed strings and there is no need to search on it, so we could update it to only <kbd>keyword</kbd>.</li>
+
+                        <li>The <kbd>category</kbd> field could some times be used to search, but in general it is a drop down menu or a list in the website. That means we can also map it as a <kbd>keyword</kbd> only field.</li>
+
+                        <li>We will never use the <kbd>content</kbd> field to sort or aggregate, only search. So, we can change the mapping to only be <kbd>text</kbd>. However, the <kbd>content</kbd> can be in a language different then English (e.g. French or German). Maybe we should add multi-fields to also analyze this field in those languages. We will discuss multi-fields a bit later in this lab.</li>
+
+                    </ul>
+                </div></div>
+            </li>
+
+            <li>
+                Now that we know how the mapping should look like, delete the <kbd>tmp_blogs</kbd> index and recreate the <kbd>tmp_blogs</kbd> index with correct mapping.
+
+                <div class="solution" id="solution38"><input id="question38" data-value="answer" type="button" value="Hide answer:"><div id="answer38" style="display: block;">
+                    <pre><code>DELETE tmp_blogs
+
+PUT tmp_blogs
+{
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "publish_date": {
+          "type": "date"
+        },
+        "author": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "category": {
+          "type": "keyword"
+        },
+        "content": {
+          "type": "text"
+        },
+        "locales": {
+          "type": "keyword"
+        },
+        "title": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "url": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Index the sample document from step 1:
+                <pre><code>PUT tmp_blogs/_doc/1
+{
+  "title": "Elastic Cloud and Meltdown",
+  "publish_date": "2018-01-07T23:00:00.000Z",
+  "author": "Elastic Engineering",
+  "category": "Engineering",
+  "content": " Elastic is aware of the Meltdown and Spectre vulnerabilities...",
+  "url": "/blog/elastic-cloud-and-meltdown",
+  "locales": ["de-de","fr-fr"]
+}</code></pre>
+            </li>
+            <li>
+                Search for <kbd>engineering</kbd> in the <kbd>category</kbd> field. Why is the document not returned? Now search for <kbd>Engineering</kbd>. Does it work? Why?
+
+                <div class="solution" id="solution39"><input id="question39" data-value="answer" type="button" value="Hide answer:"><div id="answer39" style="display: block;">
+                    The first search for <kbd>engineering</kbd> (lowercase "e") is not a match because <kbd>category</kbd> is a <kbd>keyword</kbd> field (which means that there is no text analysis) and the document value has an uppercase "e". Therefore, only the second query returns a hit.
+                    <pre><code>GET tmp_blogs/_search
+{
+  "query": {
+    "match": {
+      "category": "engineering"
+    }
+  }
+}
+
+GET tmp_blogs/_search
+{
+  "query": {
+    "match": {
+      "category": "Engineering"
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Now that you are more familiar with mappings, let's take a look into text analysis. Test the following text using the <kbd>_analyze</kbd> API. Do not specify an analyzer - just use the default one: <pre><code>"Introducing beta releases: Elasticsearch and Kibana Docker images!"</code></pre>
+
+                <div class="solution" id="solution40"><input id="question40" data-value="answer" type="button" value="Hide answer:"><div id="answer40" style="display: block;">
+                    <pre><code>GET _analyze
+{
+  "text": "Introducing beta releases: Elasticsearch and Kibana Docker images!"
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                What was the default analyzer used in the previous step?
+                <div class="solution" id="solution41"><input id="question41" data-value="answer" type="button" value="Hide answer:"><div id="answer41" style="display: block;">
+                    The <kbd>standard</kbd> analyzer is the default.
+                </div></div>
+            </li>
+            <li>
+                Test the text again, but use the <kbd>whitespace</kbd> analyzer. What is the difference?
+
+                <div class="solution" id="solution42"><input id="question42" data-value="answer" type="button" value="Hide answer:"><div id="answer42" style="display: block;">
+                    <pre><code>GET _analyze
+{
+  "analyzer": "whitespace",
+  "text": "Introducing beta releases: Elasticsearch and Kibana Docker images!"
+}</code></pre>
+                    The whitespace analyzer does not lowercase terms and does not remove punctuation.
+                </div></div>
+            </li>
+
+            <li>
+                Change the analyzer a few more times, testing the <kbd>stop</kbd>, <kbd>keyword</kbd> and <kbd>english</kbd> analyzers on the same text and comparing the different outputs.  Which analyzer do you think works the best for the blogs website?
+                <div class="solution" id="solution43"><input id="question43" data-value="answer" type="button" value="Hide answer:"><div id="answer43" style="display: block;">
+                    <pre><code>GET _analyze
+{
+  "analyzer": "stop",
+  "text": "Introducing beta releases: Elasticsearch and Kibana Docker images!"
+}
+
+GET _analyze
+{
+  "analyzer": "keyword",
+  "text": "Introducing beta releases: Elasticsearch and Kibana Docker images!"
+}
+
+GET _analyze
+{
+  "analyzer": "english",
+  "text": "Introducing beta releases: Elasticsearch and Kibana Docker images!"
+}</code></pre>
+
+                    It is hard to say which one is the best. Each dataset is different and has its own details. You must test a lot and see which analyzer gives you the best results. Often, you use a combination of multiple analyzers in different multi-fields. In the blogs dataset, both the <b>stop</b> and the <b>english</b> analyzer seem like a good choice.
+                </div></div>
+            </li>
+
+            <li>
+                Let's go one level lower than analyzers. Analyze the following text using the <kbd>standard</kbd> tokenizer and the <kbd>lowercase</kbd> and <kbd>snowball</kbd> filters. Now, compare the results with the output of the <kbd>english</kbd> analyzer. What is different between these two techniques?
+
+                <pre><code>"text": "This release includes mainly bug fixes."</code></pre>
+                <div class="solution" id="solution44"><input id="question44" data-value="answer" type="button" value="Hide answer:"><div id="answer44" style="display: block;">
+                    <pre><code>GET _analyze
+{
+  "tokenizer": "standard",
+  "filter": ["lowercase","snowball"],
+  "text": "This release includes mainly bug fixes."
+}
+
+GET _analyze
+{
+  "analyzer": "english",
+  "text": "This release includes mainly bug fixes."
+}</code></pre>
+                    <p>Notice the <kbd>english</kbd> analyzer does not use the <kbd>snowball</kbd> stemmer. It uses the <kbd>english_stemmer</kbd>, which stems "mainly" to "mainli" (instead of "main" for the <kbd>snowball</kbd> stemmer). The <kbd>english</kbd> analyzer also removes stop words.</p>
+                </div></div>
+            </li>
+            <li>Using <kbd>_analyze</kbd>, configure and test an analyzer that satisfies the following:
+                <ul>
+                    <li>uses the <kbd>standard</kbd> tokenizer</li>
+                    <li>uses the <kbd>lowercase</kbd> token filter</li>
+                    <li>uses the <kbd>asciifolding</kbd> token filter</li>
+                </ul>
+                Test your analyzer with the exact text here by copy-and-pasting it: <pre><code>"text": "Elasticsearch é um motor de buscas distribuído."</code></pre>
+                Run the command with and without <kbd>asciifolding</kbd> to see its effect on special characters.
+                <div class="solution" id="solution45"><input id="question45" data-value="answer" type="button" value="Hide answer:"><div id="answer45" style="display: block;">
+                    <pre><code>GET _analyze
+{
+  "tokenizer": "standard",
+  "filter": ["lowercase", "asciifolding"],
+  "text": "Elasticsearch é um motor de buscas distribuído."
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                In many use cases, the built-in analyzers are not perfect. Imagine we want to search for <kbd>c++</kbd> or <kbd>IT</kbd>. Both the <kbd>standard</kbd> and the <kbd>english</kbd> analyzers will not help much. Test the following sentence using the analyze API:
+
+                <pre><code>"text": "C++ can help it and your IT systems."</code></pre>
+                <div class="solution" id="solution46"><input id="question46" data-value="answer" type="button" value="Hide answer:"><div id="answer46" style="display: block;">
+                    <pre><code>GET _analyze
+{
+  "analyzer": "english",
+  "text": "C++ can help it and your IT systems."
+}</code></pre>
+                    <p>In the next chapter, you will learn how to write your own custom analyzer that handles text like C++ and IT in a better manner.</p>
+                </div></div>
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you became familiar with how to read an index mapping and how to define your own mapping. Also, you viewed the behavior of the various analyzers using the <kbd>_analyze</kbd> API.
+        </p>
+        <h3>End of Lab 5</h3>
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab6"></a>
+        <h2>Lab 6: Custom Mappings</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will use your text analysis and mappings skills to re-create the <kbd>blogs</kbd> index with a better configuration.
+        </p>
+
+        <ol>
+            <li>
+                You are going to build your own analyzer! Create an index named <kbd>analysis_test</kbd> that has an analyzer named <kbd>my_analyzer</kbd> which satisfies the following:
+                <ul>
+                    <li>allow queries for <kbd>C++</kbd> to match only documents that contain <kbd>C++</kbd> (transform <kbd>c++</kbd> and <kbd>C++</kbd> into <kbd>cpp</kbd>)</li>
+                    <li>allow queries for <kbd>IT</kbd> to match only documents that contain <kbd>IT</kbd> and not <kbd>it</kbd>.(for example, transform <kbd>IT</kbd> into <kbd>_IT_</kbd> before lowercase)</li>
+                    <li>lowercase all text</li>
+                    <li>remove the default stop words</li>
+                    <li>remove the following terms as well: <kbd>can, we, our, you, your, all</kbd></li>
+                </ul>
+
+                <div class="solution" id="solution47"><input id="question47" data-value="answer" type="button" value="Hide answer:"><div id="answer47" style="display: block;">
+                    <pre><code>GET _analyze
+{
+  "analyzer": "english",
+  "text": "C++ can help it and your IT systems."
+}
+
+PUT analysis_test
+{
+  "settings": {
+    "analysis": {
+      "char_filter": {
+        "cpp_it": {
+          "type": "mapping",
+          "mappings": ["c++ =&gt; cpp", "C++ =&gt; cpp", "IT =&gt; _IT_"]
+        }
+      },
+      "filter": {
+        "my_stop": {
+          "type": "stop",
+          "stopwords": ["can", "we", "our", "you", "your", "all"]
+        }
+      },
+      "analyzer": {
+        "my_analyzer": {
+          "tokenizer": "standard",
+          "char_filter": ["cpp_it"],
+          "filter": ["lowercase", "stop", "my_stop"]
+        }
+      }
+    }
+  }
+}
+
+GET analysis_test/_analyze
+{
+  "analyzer": "my_analyzer",
+  "text": "C++ can help it and your IT systems."
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Run the following two queries, which search for <kbd>blogs</kbd> that contain <kbd>c++</kbd> and <kbd>IT</kbd> in the <kbd>content</kbd> field. Notice you get poor results in both cases because of how the default <kbd>standard</kbd> analyzer processes <kbd>c++</kbd> and <kbd>IT</kbd>.
+
+                <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "content": "c++"
+    }
+  }
+}
+
+GET blogs/_search
+{
+  "query": {
+    "match": {
+      "title": "IT"
+    }
+  }
+}</code></pre>
+            </li>
+            <li>
+                Let's setup a new blogs index with the same data, but using a better, more appropriate analyzer:
+                <ul>
+                    <li>Create a new index named <kbd>blogs_analyzed</kbd> that uses your custom <kbd>my_analyzer</kbd> from the previous step</li>
+                    <li>Use the optimized mappings from <kbd>tmp_blogs</kbd> and add a multi-field to <em><b>both</b></em> the <kbd>content</kbd> and <kbd>title</kbd> fields named <kbd>my_analyzer</kbd>. These multi-fields should be of type <kbd>text</kbd> and set the <kbd>analyzer</kbd> to <kbd>my_analyzer</kbd>.</li>
+                </ul>
+                <div class="solution" id="solution48"><input id="question48" data-value="answer" type="button" value="Hide answer:"><div id="answer48" style="display: block;">
+                    <pre><code>PUT blogs_analyzed
+{
+  "settings": {
+    "analysis": {
+      "char_filter": {
+        "cpp_it": {
+          "type": "mapping",
+          "mappings": [
+            "c++ =&gt; cpp",
+            "C++ =&gt; cpp",
+            "IT =&gt; _IT_"
+          ]
+        }
+      },
+      "filter": {
+        "my_stop": {
+          "type": "stop",
+          "stopwords": [
+            "can",
+            "we",
+            "our",
+            "you",
+            "your",
+            "all"
+          ]
+        }
+      },
+      "analyzer": {
+        "my_analyzer": {
+          "tokenizer": "standard",
+          "char_filter": [
+            "cpp_it"
+          ],
+          "filter": [
+            "lowercase",
+            "stop",
+            "my_stop"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "author": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "category": {
+          "type": "keyword"
+        },
+        "content": {
+          "type": "text",
+          "fields": {
+            "my_analyzer": {
+              "type": "text",
+              "analyzer": "my_analyzer"
+            }
+          }
+        },
+        "publish_date": {
+          "type": "date"
+        },
+        "locales": {
+          "type": "keyword"
+        },
+        "title": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            },
+            "my_analyzer": {
+              "type": "text",
+              "analyzer": "my_analyzer"
+            }
+          }
+        },
+        "url": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Run the following command to index the current <kbd>blogs</kbd> into your new <kbd>blogs_analyzed</kbd> index:
+                <pre><code>POST _reindex
+{
+  "source": {"index": "blogs"},
+  "dest":   {"index": "blogs_analyzed"}
+}</code></pre>
+            </li>
+            <li>
+                Rerun the searches in the new index using the <kbd>.my_analyzer</kbd> field and compare results.
+                <div class="solution" id="solution49"><input id="question49" data-value="answer" type="button" value="Hide answer:"><div id="answer49" style="display: block;">
+                    You should only get 2 hits for <kbd>"c++"</kbd> and 1 hit for <kbd>"IT"</kbd> on the <kbd>.my_analyzer</kbd> fields:
+                    <pre><code>GET blogs_analyzed/_search
+{
+  "query": {
+    "match": {
+      "content.my_analyzer": "c++"
+    }
+  }
+}
+
+GET blogs_analyzed/_search
+{
+  "query": {
+    "match": {
+      "title.my_analyzer": "IT"
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                <strong>OPTIONAL</strong>: Our other dataset is a collection of access logs, with a sample document shown below. Index this document into a new index named <kbd>logs_temp</kbd> and view the mapping that Elasticsearch creates for you. How effective is this default mapping? Notice that with time-series log data we probably do not have a lot fields that are both <kbd>text</kbd> and <kbd>keyword</kbd>.
+                <pre><code>{
+  "@timestamp": "2017-07-17T00:57:51.548Z",
+  "method": "GET",
+  "level": "info",
+  "user_agent": "Amazon CloudFront",
+  "language": {
+    "url": "/blog/introducing-machine-learning-for-the-elastic-stack",
+    "code": "ko-kr"
+  },
+  "response_size": 54149,
+  "geoip": {
+    "country_name": "Singapore",
+    "continent_code": "AS",
+    "country_code3": "SG",
+    "location": {
+      "lon": 103.8,
+      "lat": 1.3667
+    },
+    "country_code2": "SG"
+  },
+  "host": "server1",
+  "status_code": 200,
+  "originalUrl": "/kr/blog/introducing-machine-learning-for-the-elastic-stack",
+  "runtime_ms": 109,
+  "http_version": "1.1"
+}</code></pre>
+                <div class="solution" id="solution50"><input id="question50" data-value="answer" type="button" value="Hide answer:"><div id="answer50" style="display: block;">
+                <pre><code>POST logs_temp/_doc
+{
+  "@timestamp": "2017-07-17T00:57:51.548Z",
+  "method": "GET",
+  "level": "info",
+  "user_agent": "Amazon CloudFront",
+  "language": {
+    "url": "/blog/introducing-machine-learning-for-the-elastic-stack",
+    "code": "ko-kr"
+  },
+  "response_size": 54149,
+  "geoip": {
+    "country_name": "Singapore",
+    "continent_code": "AS",
+    "country_code3": "SG",
+    "location": {
+      "lon": 103.8,
+      "lat": 1.3667
+    },
+    "country_code2": "SG"
+  },
+  "host": "server1",
+  "status_code": 200,
+  "originalUrl": "/kr/blog/introducing-machine-learning-for-the-elastic-stack",
+  "runtime_ms": 109,
+  "http_version": "1.1"
+}
+
+GET logs_temp/_mapping</code></pre>
+                </div></div>
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you used your text analysis and mappings skills to re-create the <kbd>blogs</kbd> index with a better configuration.
+        </p>
+        <h3>End of Lab 6</h3>
+
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab7"></a>
+        <h2>Lab 7: Node Types</h2>
+        <p>
+            <strong>Objective</strong>: In this lab, you will become familiar with the cluster state and node roles. You will add two extra nodes to the cluster and update the current nodes to become dedicated nodes.
+        </p>
+
+        <ol>
+            <li>
+                Before you make changes to your cluster, let's start by understanding its current state. Use the Cluster State API to answer the following questions.
+                <ul>
+                    <li>What is the cluster name?</li>
+                    <li>How many nodes are there in the cluster?</li>
+                    <li>Which node is the elected master node?</li>
+                    <li>How many indices are there in the cluster?</li>
+                </ul>
+                You probably know the answers to these questions because your current cluster only has 1 node and uses a lot of default settings, but these are great questions to ask about any cluster.
+                <div class="solution" id="solution51"><input id="question51" data-value="answer" type="button" value="Hide answer:"><div id="answer51" style="display: block;">
+                    <pre><code>GET _cluster/state</code></pre>
+                    The cluster name should be <kbd>my_cluster</kbd>. You only have a single node, which is the elected master node. You should have at least 5 indices in the cluster.
+                </div></div>
+            </li>
+
+            <li>
+                Another way to answer some of the previous questions is to use the <kbd>_cat</kbd> API, which often returns less information per API, but it is typically easier to read. Run each of the following commands:
+                <pre><code>GET _cat/nodes?v</code></pre>
+                The <kbd>nodes</kbd> command gives you information about all the nodes in the cluster, including their roles. You can see that <kbd>node1</kbd> is a <kbd>master-eligible</kbd>, <kbd>data</kbd>, and <kbd>ingest</kbd> node (<b>mdi</b>) and that <kbd>node1</kbd> is the elected-master in the cluster. (Remember to use <kbd>?v</kbd> to see the header.)
+                <pre><code>GET _cat/indices?v</code></pre>
+                The <kbd>indices</kbd> command gives you information about the indices in the cluster. You can see the number of primary shards, replica shards, documents and deleted documents. You can also see the size on disk for primary shards and in total (primary shards + replica shards). Finally, notice that every index has a name and a uuid. <i>(Primary and replica shards, index health and status will be discussed later.)</i>
+            </li>
+            <li>
+                Let's scale our cluster by adding another node, but first you need to make a few changes to <kbd>node1</kbd>. Stop Elasticsearch on <kbd>server1</kbd>.
+            </li>
+            <li>
+                Edit your <kbd>elasticsearch.yml</kbd> file on <kbd>server1</kbd> so that it looks like the following:
+                <pre><code>cluster.name: my_cluster
+node.name: node1
+network.host:  0.0.0.0
+discovery.zen.ping.unicast.hosts: ["server1", "server2", "server3"]
+discovery.zen.minimum_master_nodes: 2
+xpack.security.enabled: true</code></pre>
+                <strong>NOTE:</strong> Setting <kbd>minimum_master_nodes</kbd> to 2 is a critical step in building a 3-node cluster that has mulitlpe master-eligible nodes.
+            </li>
+            <li>
+                Startup Elasticsearch on <kbd>server1</kbd> using the following command:
+                <pre class="bash">./elasticsearch-6.5.1/bin/elasticsearch</pre>
+                Your node will not completely startup, because there are not enough master-eligible nodes to cause an election to occur. You should see a warning similar to the following:
+
+                <pre class="bash">[WARN ][o.e.d.z.ZenDiscovery     ] [node1] not enough master nodes discovered during pinging (found [[Candidate{node={node1}{KzsXYzV3TEGVCpMr7RPByg}{lJO5FBh5RIuYsy53GXFd0A}{172.18.0.2}{172.18.0.2:9300}, clusterStateVersion=-1}]], but needed [2]), pinging again</pre>
+            </li>
+            <li>
+                Open a new terminal tab in the Virtual Environment UI and <kbd>ssh</kbd> onto <kbd>server2</kbd>:
+                <pre class="bash">ssh server2</pre>
+            </li>
+            <li>Extract Elasticsearch on <kbd>server2</kbd>:
+                <pre class="bash">tar -zxf elasticsearch-6.5.1.tar.gz</pre>
+            </li>
+            <li>
+                Start a node with the following characteristics. Configure the settings in the appropriate config files (either <kbd>elasticsearch.yml</kbd> and <kbd>jvm.options</kbd>):
+                <ul>
+                    <li>it joins <kbd>my_cluster</kbd></li>
+                    <li>the name of the node is <kbd>node2</kbd></li>
+                    <li>binds and publishes to the site-local address (<kbd>_site_</kbd>)</li>
+                    <li>it discovers the cluster via <kbd>server1</kbd> or <kbd>server2</kbd> or <kbd>server3</kbd></li>
+                    <li>set <kbd>discovery.zen.minimum_master_nodes</kbd> to 2</li>
+                    <li>set <kbd>xpack.security.enabled</kbd> to <kbd>true</kbd>
+                    </li><li>set the min and max heap size to <kbd>512m</kbd></li>
+                </ul>
+
+                You should see the following output:
+
+                <pre class="bash">[2018-11-23T19:03:54,245][INFO ][o.e.c.s.ClusterApplierService] [node2] detected_master {node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}, added {{node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true},}, reason: apply cluster state (from master [master {node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true} committed version [27]])
+[2018-11-23T19:03:54,981][INFO ][o.e.x.s.a.TokenService   ] [node2] refresh keys
+[2018-11-23T19:03:55,345][INFO ][o.e.x.s.a.TokenService   ] [node2] refreshed keys
+[2018-11-23T19:03:55,386][INFO ][o.e.l.LicenseService     ] [node2] license [423ed674-41a3-4284-9a95-e16ea01f8ecd] mode [trial] - valid
+[2018-11-23T19:03:55,442][INFO ][o.e.x.s.t.n.SecurityNetty4HttpServerTransport] [node2] publish_address {172.18.0.3:9200}, bound_addresses {172.18.0.3:9200}
+[2018-11-23T19:03:55,442][INFO ][o.e.n.Node               ] [node2] started</pre>
+
+                <div class="solution" id="solution52"><input id="question52" data-value="answer" type="button" value="Hide answer:"><div id="answer52" style="display: block;">
+                    The <kbd>elasticsearch-6.5.1/config/elasticsearch.yml</kbd> configuration file should look like:
+                    <pre><code>cluster.name: my_cluster
+node.name: node2
+network.host: _site_
+discovery.zen.ping.unicast.hosts: ["server1", "server2", "server3"]
+discovery.zen.minimum_master_nodes: 2
+xpack.security.enabled: true</code></pre>
+
+                    The <kbd>elasticsearch-6.5.1/config/jvm.options</kbd> configuration file should contain:
+                    <pre><code>-Xms512m
+-Xmx512m</code></pre>
+
+                    Start Elasticsearch using the following command:
+
+                    <pre class="bash">./elasticsearch-6.5.1/bin/elasticsearch</pre>
+                </div></div>
+            </li>
+            <li>
+                Use <kbd>_cat/nodes</kbd> to view the nodes in the cluster. You should see two nodes now:
+                <pre><code>ip         heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
+172.18.0.2           31          98  11    0.01    0.15     0.08 mdi       *      node1
+172.18.0.3           37          98  11    0.01    0.15     0.08 mdi       -      node2</code></pre>
+
+                    Note that you may need to log back in to Kibana as <kbd>elastic</kbd> user after restarting <kbd>node1</kbd>.
+                <div class="solution" id="solution53"><input id="question53" data-value="answer" type="button" value="Hide answer:"><div id="answer53" style="display: block;">
+                    <pre><code>GET _cat/nodes?v</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Scale your cluster even more by adding a third node. Open another terminal window in the Virtual Environment UI and <kbd>ssh</kbd> onto <kbd>server3</kbd>:
+                <pre class="bash">ssh server3</pre>
+            </li>
+            <li>
+                Extract Elasticsearch on <kbd>server3</kbd>:
+                <pre class="bash">tar -zxf elasticsearch-6.5.1.tar.gz</pre>
+            </li>
+            <li>
+                Modify <kbd>elasticsearch.yml</kbd> on <kbd>server3</kbd> with the following settings:
+                <pre><code>cluster.name: my_cluster
+node.name: node3
+network.host: _site_
+discovery.zen.ping.unicast.hosts: ["server1", "server2", "server3"]
+discovery.zen.minimum_master_nodes: 2
+xpack.security.enabled: true</code></pre>
+                Also, change the heap sizes in <kbd>jvm.options</kbd>:
+                <pre><code>-Xms512m
+-Xmx512m</code></pre>
+            </li>
+            <li>
+                Start Elasticsearch on <kbd>server3</kbd>. You should see the following output:
+
+                <pre class="bash">[2018-11-23T19:13:18,009][INFO ][o.e.c.s.ClusterApplierService] [node3] detected_master {node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}, added {{node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true},{node2}{7IrQlPdBRJaA12OlrbdpZQ}{0mVQTduVQJuaQavC6PAHlA}{172.18.0.3}{172.18.0.3:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true},}, reason: apply cluster state (from master [master {node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true} committed version [116]])
+[2018-11-23T19:13:18,420][INFO ][o.e.x.s.a.TokenService   ] [node3] refresh keys
+[2018-11-23T19:13:18,774][INFO ][o.e.x.s.a.TokenService   ] [node3] refreshed keys
+[2018-11-23T19:13:18,934][INFO ][o.e.l.LicenseService     ] [node3] license [423ed674-41a3-4284-9a95-e16ea01f8ecd] mode [trial] - valid
+[2018-11-23T19:13:19,018][INFO ][o.e.x.s.t.n.SecurityNetty4HttpServerTransport] [node3] publish_address {172.18.0.4:9200}, bound_addresses {172.18.0.4:9200}
+[2018-11-23T19:13:19,019][INFO ][o.e.n.Node               ] [node3] started</pre>
+            </li>
+            <li>
+                Use <kbd>_cat/nodes</kbd> to verify that you have 3 nodes in your cluster.
+            </li>
+            <li>
+                Execute the following command to create a new index named <kbd>test0</kbd> that contains <b>zero</b> replicas. Because this index has no replicas, it will cause your cluster to turn red at the end of this lab when you reconfigure your nodes.
+                <pre><code>PUT test0
+{
+  "settings": {
+    "number_of_replicas": 0
+  }
+}</code></pre>
+            </li>
+            <li>
+                Stop the master node (probably <kbd>node1</kbd>) and check the terminal output in the other nodes. Among the logged lines you will see something similar to the following:
+
+                <pre class="bash">[2018-11-23T19:15:47,301][INFO ][o.e.d.z.ZenDiscovery     ] [node2] master_left [{node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}], reason [shut_down]
+[2018-11-23T19:15:47,303][WARN ][o.e.d.z.ZenDiscovery     ] [node2] master left (reason = shut_down), current nodes: nodes:
+   {node2}{7IrQlPdBRJaA12OlrbdpZQ}{0mVQTduVQJuaQavC6PAHlA}{172.18.0.3}{172.18.0.3:9300}{ml.machine_memory=3892260864, xpack.installed=true, ml.max_open_jobs=20, ml.enabled=true}, local
+   {node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}, master
+   {node3}{tWpzRPKfTrujh02kPpMHiA}{W4P1zuy_TauS0GGCGMq8Bg}{172.18.0.4}{172.18.0.4:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}
+
+[2018-11-23T19:15:50,432][INFO ][o.e.c.s.MasterService    ] [node2] zen-disco-elected-as-master ([1] nodes joined)[{node3}{tWpzRPKfTrujh02kPpMHiA}{W4P1zuy_TauS0GGCGMq8Bg}{172.18.0.4}{172.18.0.4:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}], reason: new_master {node2}{7IrQlPdBRJaA12OlrbdpZQ}{0mVQTduVQJuaQavC6PAHlA}{172.18.0.3}{172.18.0.3:9300}{ml.machine_memory=3892260864, xpack.installed=true, ml.max_open_jobs=20, ml.enabled=true}
+[2018-11-23T19:15:50,461][WARN ][o.e.d.z.PublishClusterStateAction] [node2] publishing cluster state with version [150] failed for the following nodes: [[{node1}{Xe6KFUYCTA6AWRpbw84qaQ}{CKxs8gcTRoiYEiutL4BERw}{172.18.0.2}{172.18.0.2:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}]]
+[2018-11-23T19:15:50,465][INFO ][o.e.c.s.ClusterApplierService] [node2] new_master {node2}{7IrQlPdBRJaA12OlrbdpZQ}{0mVQTduVQJuaQavC6PAHlA}{172.18.0.3}{172.18.0.3:9300}{ml.machine_memory=3892260864, xpack.installed=true, ml.max_open_jobs=20, ml.enabled=true}, reason: apply cluster state (from master [master {node2}{7IrQlPdBRJaA12OlrbdpZQ}{0mVQTduVQJuaQavC6PAHlA}{172.18.0.3}{172.18.0.3:9300}{ml.machine_memory=3892260864, xpack.installed=true, ml.max_open_jobs=20, ml.enabled=true} committed version [150] source [zen-disco-elected-as-master ([1] nodes joined)[{node3}{tWpzRPKfTrujh02kPpMHiA}{W4P1zuy_TauS0GGCGMq8Bg}{172.18.0.4}{172.18.0.4:9300}{ml.machine_memory=3892260864, ml.max_open_jobs=20, xpack.installed=true, ml.enabled=true}]]])</pre>
+
+                Notice the other nodes realized that the elected master left the cluster, and then elected a new master.
+            </li>
+
+            <li>
+                Use <kbd>_cat/nodes</kbd> API to see the updated cluster information. Why do you get back a <kbd>500</kbd> error?
+
+                <div class="solution" id="solution54"><input id="question54" data-value="answer" type="button" value="Hide answer:"><div id="answer54" style="display: block;">
+                    <pre><code>GET _cat/nodes</code></pre>
+                    <pre><code>{
+  "statusCode": 500,
+  "error": "Internal Server Error",
+  "message": "An internal server error occurred"
+}</code></pre>
+
+                    Kibana is configured to talk to <kbd>node1</kbd>. As <kbd>node1</kbd> is down, Kibana cannot connect to the cluster anymore. Don't worry about it now, you will get it fixed soon. Note that you will not get this error if your master node wasn't <kbd>node1</kbd>.
+                </div></div>
+            </li>
+
+            <li>
+                Next, you will practice with deploying dedicated nodes. Let's say that we want <kbd>node2</kbd> to be a dedicated <kbd>master-eligible</kbd> node and <kbd>node1</kbd> and <kbd>node3</kbd> to be dedicated <kbd>data</kbd> and <kbd>ingest</kbd> nodes.
+                <ul>
+                    <li>
+                        Stop all of your nodes that are still running
+                    </li>
+                    <li>
+                        Update the configuration files on the three servers to reflect the above. You will need to set <kbd>minimum_master_nodes</kbd> to 1, because you will only have 1 master-eligible node.
+                        <div class="solution" id="solution55"><input id="question55" data-value="answer" type="button" value="Hide answer:"><div id="answer55" style="display: block;">
+                            Add the following to the <kbd>node2</kbd> configuration file:
+                            <pre><code>node.master: true
+node.data: false
+node.ingest: false</code></pre>
+
+                            Add the following to the <kbd>node1</kbd> and <kbd>node3</kbd> configuration files:
+                            <pre><code>node.master: false
+node.data: true
+node.ingest: true</code></pre>
+                        </div></div>
+                    </li>
+
+
+                    <li>Start <kbd>node2</kbd> first</li>
+
+                    <li>Then start <kbd>node3</kbd></li>
+
+                    <li>Finally, start <kbd>node1</kbd></li>
+
+                    Your cluster may have a red status now. Don't worry! You will resolve this in a later chapter.
+                </ul>
+            </li>
+            <li>
+                Verify your nodes are configured the way you want:
+                <pre><code>GET _cat/nodes</code></pre>
+
+                You should see the following:
+
+                <pre><code>172.18.0.2 49 96 16 0.24 0.15 0.06 di - node1
+172.18.0.4 48 96 11 0.24 0.15 0.06 di - node3
+172.18.0.3 32 96 15 0.24 0.15 0.06 m  * node2</code></pre>
+                You should see <kbd>node2</kbd> as the master (by the asterisk in the <kbd>master</kbd> column), and notice its role is only <kbd>"m"</kbd>. Similarly, notice the
+                role of <kbd>node1</kbd> and <kbd>node3</kbd> is <kbd>"di"</kbd>.
+            </li>
+        </ol>
+
+        <p>
+            <strong>Summary</strong>: In this lab, you became familiar with the cluster state and node roles. You added two extra nodes to the cluster and updated the current nodes to become dedicated nodes.
+        </p>
+
+        <h3>End of Lab 7</h3>
+
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab8"></a>
+        <h2>Lab 8: Understanding Shards</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will become familiar with shard distribution. You will create new indices with a specific number of shards and replicas and analyze shard allocation. Finally, you will see the <kbd>dfs_query_then_fetch</kbd> search type in practice.
+        </p>
+
+        <ol>
+          <li>
+            First, use the <kbd>_cat</kbd> API to see information about the shards in the cluster.
+            How many shards does the index <kbd>logs_server2</kbd> have? And in which node are they allocated?
+            <div class="solution" id="solution56"><input id="question56" data-value="answer" type="button" value="Hide answer:"><div id="answer56" style="display: block;">
+              <pre><code>GET _cat/shards?v</code></pre>
+              The <kbd>shards</kbd> command gives you information about the shards in the cluster. You can see information about primaries and replicas, the number of documents, size on disk, and which node a shard has been allocated. If you are interested in a specific index, add the index name after <kbd>/shards</kbd>, like the following:
+              <pre><code>GET _cat/shards/logs_server2?v</code></pre>
+              The <kbd>logs_server2</kbd> index has 5 primary shards and 1 replica shard configured.
+              The allocation of primaries and replicas will be distributed across <kbd>node1</kbd> and <kbd>node3</kbd>, as <kbd>node2</kbd> is a dedicated master-eligible node.
+            </div></div>
+          </li>
+          <!-- Nice step in which we explain the shard allocation. Maybe we can add it in another iteration.
+            Can you explain the main steps that happened in the cluster for this request?
+            <div class="solution">
+              Kibana is connected to <kbd>node1</kbd>, which will then be the coordinating node of the request. This is an index creation request, which changes the cluster state and must be executed in the master node. <kbd>node1</kbd> is the master node, so it decides the shard allocation, updates the cluster state and sends the updated cluster state to the nodes 2 and 3. Finally, each node creates the shards allocated to itself. <i>(This is a simplified version of what is happening. In the next chapter you will ive deeper into shard allocation.)</i>
+            </div>
+          -->
+          <li>
+            To better understand shard allocation, you are going to create a new index. But first, stop <kbd>node3</kbd>.
+            <div class="solution" id="solution57"><input id="question57" data-value="answer" type="button" value="Hide answer:"><div id="answer57" style="display: block;">
+              Press <kbd>crtl+c</kbd> in the terminal tab in which Elasticsearch is running on <kbd>server3</kbd>.
+            </div></div>
+          </li>
+          <li>
+            Next, create an index named <kbd>test1</kbd> with 4 primary shards and 2 replicas.
+            <div class="solution" id="solution58"><input id="question58" data-value="answer" type="button" value="Hide answer:"><div id="answer58" style="display: block;">
+              <pre><code>PUT test1
+{
+  "settings": {
+    "number_of_shards": 4,
+    "number_of_replicas": 2
+  }
+}</code></pre>
+            </div></div>
+          </li>
+          <li>
+              Use the following to check the shard allocation of your <kbd>test1</kbd> index. You should see 4 <kbd>STARTED</kbd> primary shards and 8 <kbd>UNASSIGNED</kbd> replica shards.
+              <pre><code>GET _cat/shards/test1?v</code></pre>
+              For better readability, you can use the following query to see the results sorted:
+              <pre><code>GET _cat/shards/test1?v&amp;s=shard,prirep</code></pre>
+          </li>
+          <li>
+            Now, start <kbd>node3</kbd> again.
+            <div class="solution" id="solution59"><input id="question59" data-value="answer" type="button" value="Hide answer:"><div id="answer59" style="display: block;">
+              Run the following command in the terminal tab on <kbd>server3</kbd>.
+              <pre class="bash">./elasticsearch-6.5.1/bin/elasticsearch</pre>
+            </div></div>
+          </li>
+          <li>
+              Use the <kbd>_cat/shards</kbd> API to see the updated shard information of the <kbd>test1</kbd> index. Notice that 4 replicas are now allocated to <kbd>node3</kbd>, but there are still 4 <kbd>UNASSIGNED</kbd> replicas not allocated. Remember that Elasticsearch never allocates more than 1 copy of the same shard to the same node.
+              <div class="solution" id="solution60"><input id="question60" data-value="answer" type="button" value="Hide answer:"><div id="answer60" style="display: block;">
+                  <pre><code>GET _cat/shards/test1?v</code></pre>
+                  For better readability, you can use the following query to see the results sorted:
+                  <pre><code>GET _cat/shards/test1?v&amp;s=shard,prirep</code></pre>
+              </div></div>
+          </li>
+          <li>
+              Update the <kbd>test1</kbd> index to have 0 replicas and check the new shard distribution.
+              <div class="solution" id="solution61"><input id="question61" data-value="answer" type="button" value="Hide answer:"><div id="answer61" style="display: block;">
+                  <pre><code>PUT test1/_settings
+{
+  "settings": {
+    "number_of_replicas": 0
+  }
+}</code></pre>
+                  <pre><code>GET _cat/shards/test1?v&amp;s=node,shard</code></pre>
+              </div></div>
+          </li>
+          <li>
+            Elasticsearch uses shards to distribute data and scale.
+            However, this creates innacuracy to the score calculation.
+            Even though in many cases this is not an issue, in some cases it might be.
+            Run the following query and pay attention to the score.
+            <pre><code>GET blogs/_search
+{
+  "_source": "title",
+  "query": {
+    "match": {
+      "title": "elastic stack"
+    }
+  }
+}</code></pre>
+            Notice that variances in the scores of the top 5 hits, even though the titles are very similar.
+          </li>
+          <li>
+            Now, run the same query with the <kbd>dfs_query_then_fetch</kbd>
+            search type and pay attention to the score. Do you see any differences in the score? Why?
+            <div class="solution" id="solution62"><input id="question62" data-value="answer" type="button" value="Hide answer:"><div id="answer62" style="display: block;">
+              <pre><code>GET blogs/_search?search_type=dfs_query_then_fetch
+{
+  "_source": "title",
+  "query": {
+    "match": {
+      "title": "elastic stack"
+    }
+  }
+}</code></pre>
+
+
+              With <kbd>dfs_query_then_fetch</kbd>, the max score is lower than
+              the previous one and all five scores are are the same (5.8786907).
+              This happens because Elasticsearch is calculating the document frequency globally, instead of at the shard level.
+            </div></div>
+          </li>
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you became familiar with shard distribution. You created new indices with a specific number of shards and replicas and analyzed shard allocation. Finally, you saw the <kbd>dfs_query_then_fetch</kbd> search type in practice.
+        </p>
+        <h3>End of Lab 8</h3>
+
+        <hr>
+
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab9"></a>
+        <h2>Lab 9: Troubleshooting Elasticsearch</h2>
+        <p>
+            <strong>Objective</strong>: In this lab you will become familiar with some of the errors that Elasticsearch returns, and how to understand and fix some of them. Then, you will execute search requests that return partial results and hunt down the cause.
+        </p>
+
+        <ol>
+            <li>
+                Let's start with a very common error. Run the following command in Console. What is the error returned? And how can you fix it?
+                <pre><code>PUT test1/_doc/
+{
+  "test": "test"
+}</code></pre>
+                <div class="solution" id="solution63"><input id="question63" data-value="answer" type="button" value="Hide answer:"><div id="answer63" style="display: block;">
+                    The error returned is <kbd>405</kbd> ("Method not allowed"). The error message from Elasticsearch is saying that POST is allowed, but not PUT, which is correct as our document does not have an id. To fix this problem you can either give an id to the document or use a POST instead of a PUT.
+                </div></div>
+            </li>
+
+            <li>
+                Run the following command. What is the error returned? And how can you fix it?
+                <pre><code>GET test2/_doc/1</code></pre>
+                <div class="solution" id="solution64"><input id="question64" data-value="answer" type="button" value="Hide answer:"><div id="answer64" style="display: block;">
+                    The error returned is <kbd>404</kbd> ("Not found"). The error message from Elasticsearch is clear and states that the index does not exist. You probably want to make sure you have the correct index name. If you do, you want to investigate why the index does not exist or was deleted.
+                </div></div>
+            </li>
+
+            <li>
+                Run the following command. What is the error returned? And how can you fix it?
+                <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "title": "open source software",
+      "minimum_should_match": 2
+    }
+  }
+}</code></pre>
+
+                <div class="solution" id="solution65"><input id="question65" data-value="answer" type="button" value="Hide answer:"><div id="answer65" style="display: block;">
+                    The error returned is a 400 ("Bad Request"). There was a parsing exception as the <kbd>match</kbd> query does not support multiple fields. In order to use the <kbd>minimum_should_match</kbd> parameter you need to use the extended form of the <kbd>match</kbd> query, like the following:
+
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "open source software",
+        "minimum_should_match": 2
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Run the following command. What is the error returned? And how can you fix it?
+                <pre><code>GET blogs/_search
+{"query":{"match":{"title":{"query":"open source software,"minimum_should_match":2}}}}</code></pre>
+                <div class="solution" id="solution66"><input id="question66" data-value="answer" type="button" value="Hide answer:"><div id="answer66" style="display: block;">
+                    The error returned is 500 ("Internal Server Error"). The error message from Elasticsearch is clear and states that there was a JSON parse exception. The JSON is indeed not valid, which happens often when you have it in a single line, or you have a string in your application with the JSON that should be executed. To fix the above query, add a double quote after <kbd>software</kbd>.
+                </div></div>
+            </li>
+           <li>
+    <i><b>NOTE: This step and some of the following steps might have slightly different results when you execute them, because Elasticsearch does not always allocate the same shards to the same nodes.</b></i>
+                
+                Run the following commands that index two documents and run a query. What is the error returned from the query? And how can you fix it?
+                <pre><code>PUT test2/_doc/1
+{
+  "date": "2017-09-10"
+}
+
+PUT test3/_doc/1
+{
+  "date": "September 10, 2017"
+}
+
+GET test*/_search
+{
+  "query": {
+    "match": {
+      "date": "September"
+    }
+  }
+}</code></pre>
+                <div class="solution" id="solution67"><input id="question67" data-value="answer" type="button" value="Hide answer:"><div id="answer67" style="display: block;">
+                    No error code is returned in this example, the status returned is <kbd>200</kbd> ("OK"). However, the search results state that out of 19 shards, only 13 were successful and that 5 shards failed. WHAT? One shard is missing?! We will look into that in a bit. For now, by looking into the failures, you can see that there was an exception in which <kbd>September</kbd> could not be parsed as a date. The example is very simple, but this happens often when your search request contains a wildcard in the index name and you have fields with the same name but different types. If the <kbd>date</kbd> field in the <kbd>test2</kbd> index should be a "string", make sure to define the mapping before indexing the first document (or correct the mapping and reindex the data). If mappings are correct, feel free to ignore the failures and work with the partial results.
+                </div></div>
+            </li>
+
+            <li>
+                Notice that in the previous exercise, there were a total of 19 shards:
+                <ul>
+                    <li>5 from <kbd>test0</kbd></li>
+                    <li>4 from <kbd>test1</kbd>, which was the index created in the previous chapter</li>
+                    <li>5 from <kbd>test2</kbd></li>
+                    <li>5 from <kbd>test3</kbd></li>
+                </ul>
+                Out of the 19 shards, 5 shards from <kbd>test2</kbd> had an error during query execution and, therefore, failed. However, there is one shard that is not in the results nor in the failures. Let's investigate what is wrong.
+                <br><br>
+                First, check how the cluster is doing by viewing the cluster health. Is everything ok? What is the problem?
+
+                <div class="solution" id="solution68"><input id="question68" data-value="answer" type="button" value="Hide answer:"><div id="answer68" style="display: block;">
+                    <pre><code>GET _cluster/health</code></pre>
+                    The cluster has red status, which means that at least one primary shard is not available. Looking at the Cluster Health API response we can see that there is 1 unassigned shard.
+                </div></div>
+            </li>
+
+            <li>
+                Let's keep digging. Figure out which index is red and which shard is unassigned. Feel free to use the <kbd>_cluster</kbd> or <kbd>_cat</kbd> APIs.
+
+                <div class="solution" id="solution69"><input id="question69" data-value="answer" type="button" value="Hide answer:"><div id="answer69" style="display: block;">
+                    Let's figure out which index has the problem. Using the Cluster API, the command would be:
+                    <pre><code>GET _cluster/health?level=indices</code></pre>
+                    Using the <kbd>_cat</kbd> API:
+                    <pre><code>GET _cat/indices?v</code></pre>
+                    <br>
+                    Notice the <kbd>test0</kbd> index is red. Run the following to check which shard has the issue:
+                    <pre><code>GET _cluster/health/test0?level=shards</code></pre>
+                    Using the <kbd>_cat</kbd> API, the similar command would be:
+                    <pre><code>GET _cat/shards/test0?v</code></pre>
+                </div></div>
+            </li>
+            <!--      <li>
+Now that you know that the <kbd>test</kbd> index has a problem, run the following command to check which shard has the issue.
+
+<i>We could execute the shard request directly, but there are multiple shards in the cluster and it could be hard to visualize. Moreover, sometimes more than one index has an issue, which is easier to visualize at the index level request.</i>
+<br/><br/>
+After those commands we can conclude which of the shards are unassigned. (the exact shard that is unassigned may vary due to different shard allocations, but you should be able to pinpoint the issue.)
+</li>
+-->
+            <li>
+                Now that we know which shard has the issue, use the Cluster Allocation Explain API to understand it. Can you discover what is problem?
+
+                <div class="solution" id="solution70"><input id="question70" data-value="answer" type="button" value="Hide answer:"><div id="answer70" style="display: block;">
+                    You can run the short form of the allocation API because there is only one unassigned shard in the cluster. If you have more unassigned shards in the cluster, you would need to run the long form.
+                    <pre><code>GET _cluster/allocation/explain</code></pre>
+                    <pre><code>GET _cluster/allocation/explain
+{
+  "index": "test0",
+  "shard": 3,
+  "primary": true
+}</code></pre>
+                    <i>Change the value of <kbd>"shard"</kbd> in the request above into the shard that you identified earlier as being unassigned.</i>
+                </div></div>
+            </li>
+            <li>
+                Analyzing the results, you can see that there was no valid copy during a cluster recovery (which was during your restarting of the cluster). In more detail, the primary shard existed, but can no longer be found on the nodes in the cluster. The <kbd>test0</kbd> index had no replicas and you changed <kbd>node2</kbd> to be a dedicated master-eligible node. So the primary shard that was allocated to <kbd>node2</kbd> is now lost.
+            </li>
+            <li>
+                We should get the cluster back into green status! What can you do to achieve this? Below you will find a few different solutions. Be careful, because after you execute one of them you might not be able to try the others. Use the following to test if the problem is fixed and all indices are green again.
+                <pre><code>GET _cat/indices</code></pre>
+
+                <br>
+                Simple solution:
+                <div class="solution" id="solution71"><input id="question71" data-value="answer" type="button" value="Hide answer:"><div id="answer71" style="display: block;">
+                    The data is still stored in <kbd>node2</kbd>. We just need to recover it with the following steps.
+                    <ul>
+                        <li>Update <kbd>node2</kbd> configuration to have <kbd>node.data: true</kbd></li>
+                        <li>Restart <kbd>node2</kbd></li>
+                        <li>Problem solved, but <kbd>node2</kbd> is not a dedicated master-eligible node as we wanted</li>
+                    </ul>
+                </div></div>
+
+                <br>
+                Medium solution:
+                <div class="solution" id="solution72"><input id="question72" data-value="answer" type="button" value="Hide answer:"><div id="answer72" style="display: block;">
+                    After applying the previous solution, we need to make <kbd>node2</kbd> dedicated master-eligible again. But first we need make sure we have a copy of the previously unassigned shard in another node. One easy way of doing that is to dynamically change the number of replicas from 0 to 1 and then changing it back, like the following:
+                    <ul>
+                        <li>
+                            Increase the number of replicas of index <kbd>test0</kbd> to 1:
+                            <pre><code>PUT test0/_settings
+{
+  "settings": {
+    "number_of_replicas": 1
+  }
+}</code></pre>
+                        </li>
+                        <li>Update <kbd>node2</kbd> configuration to have <kbd>node.data: false</kbd></li>
+                        <li>Restart <kbd>node2</kbd></li>
+                        <li>
+                            Decrease the number of replicas of index <kbd>test0</kbd> to 0:
+                            <pre><code>PUT test0/_settings
+{
+  "settings": {
+    "number_of_replicas": 0
+  }
+}</code></pre>
+                        </li>
+                        <li>Problem completely solved</li>
+                    </ul>
+                </div></div>
+
+                <br>
+                Advanced solution:
+                <div class="solution" id="solution73"><input id="question73" data-value="answer" type="button" value="Hide answer:"><div id="answer73" style="display: block;">
+                    The previous solution completely solves the problem, but it could involve a lot of work as you increase and decrease the number of replicas. This solution uses an advanced API that you should be very careful when using. It is called <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/6.5/allocation-filtering.html">Shard Allocation Filtering</a> and it is discussed in the Elasticsearch Engineer II course. Assuming the Simple solution above was applied, run the following:
+                    <ul>
+                        <li>
+                            Decommission <kbd>node2</kbd> using its IP address:
+                            <pre><code>PUT _cluster/settings
+{
+  "transient" : {
+    "cluster.routing.allocation.exclude._ip" : "172.18.0.3"
+  }
+}</code></pre>
+                        </li>
+                        <li>Update <kbd>node2</kbd> configuration to have <kbd>node.data: false</kbd></li>
+                        <li>After all shards have been relocated, restart <kbd>node2</kbd> </li>
+                        <li>Problem cleanly solved</li>
+                    </ul>
+                </div></div>
+                <br>
+                Very simple solution:
+                <div class="solution" id="solution74"><input id="question74" data-value="answer" type="button" value="Hide answer:"><div id="answer74" style="display: block;">
+                    A simple solution is to delete the <kbd>test0</kbd> index. This is ok in many scenarios where the cluster is red because of dummy indices that were created to test something. Just like we did.
+                    <pre><code>DELETE test0</code></pre>
+                </div></div>
+
+
+            </li>
+            <li>
+              Now that you have finished your tests and you will not use the created indices anymore, make sure to cleanup your cluster by deleting all the four test indices.
+              <div class="solution" id="solution75"><input id="question75" data-value="answer" type="button" value="Hide answer:"><div id="answer75" style="display: block;">
+                You can either delete one index at a time or use the wildcard.
+                  <pre><code>DELETE test0
+DELETE test*</code></pre>
+              </div></div>
+            </li>
+        </ol>
+
+        <p>
+            <strong>Summary</strong>: In this lab you became familiar with some of the errors that Elasticsearch returns, and how to understand and fix some of them. Then you executed search requests that returned partial results and hunted down and fixed the cause.
+        </p>
+
+        <h3>End of Lab 9</h3>
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab10"></a>
+        <h2>Lab 10: Improving Search Results</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will learn how to implement features that users would expect to find in any good search application which might enable them to explore and retrieve the documents most relevant to their needs using correct ergonomics and efficient use of system resources.
+        </p>
+
+        <ol>
+            <li>
+                Start by running a query on the <kbd>blogs</kbd> index for <kbd>"open source"</kbd> in the <kbd>content</kbd> field. Then run a second query for <kbd>"open source"</kbd> on the <kbd>title</kbd> field.  Compare the total hits and top hits returned from both queries. Do the top hits look relevant? Which query had more hits?
+                <div class="solution" id="solution76"><input id="question76" data-value="answer" type="button" value="Hide answer:"><div id="answer76" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "content": "open source"
+    }
+  }
+}</code></pre>
+
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match": {
+      "title": "open source"
+    }
+  }
+}</code></pre>
+                    <br>
+                    Searching for <kbd>"open source"</kbd> in the <kbd>title</kbd> returns hits that look more relevant, and it also returns far fewer hits.
+                </div></div>
+            </li>
+            <li>
+                Combine the hits of the last two searches by writing a <kbd>multi_match</kbd> query that searches both the <kbd>content</kbd> and <kbd>title</kbd> fields for <kbd>"open source"</kbd>. Does the <kbd>multi_match</kbd> deliver more or fewer hits? How did this affect the relevance?
+                <div class="solution" id="solution77"><input id="question77" data-value="answer" type="button" value="Hide answer:"><div id="answer77" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "open source",
+      "fields": [
+        "title",
+        "content"
+      ]
+    }
+  }
+}</code></pre>
+                    <br>
+                    The <kbd>multi_match</kbd> delivered many more hits, and the top hits maintained their relevance.</div></div>
+            </li>
+
+            <li>
+                Modify your <kbd>multi_match</kbd> query by giving the <kbd>title</kbd> field a boost of 2. How does the score of the top hit compare to the previous query without the boost?
+
+                <div class="solution" id="solution78"><input id="question78" data-value="answer" type="button" value="Hide answer:"><div id="answer78" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "open source",
+      "fields": [
+        "title^2",
+        "content"
+      ]
+    }
+  }
+}</code></pre>
+                    <br>The score of the top hit was multiplied by 2.</div></div>
+            </li>
+
+            <li>
+                Boost affects the score without impacting recall or precision. Remove the boost and modify your <kbd>multi_match</kbd> query to perform a <kbd>phrase</kbd> query, which increases precision (perhaps at the expense of recall). Did the increase in precision return more or fewer hits?
+                <div class="solution" id="solution79"><input id="question79" data-value="answer" type="button" value="Hide answer:"><div id="answer79" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "open source",
+      "fields": [
+        "title",
+        "content"
+      ],
+      "type": "phrase"
+    }
+  }
+}</code></pre>
+                    <br>
+                    The increased precision reduced the number of hits.
+                </div></div>
+            </li>
+
+            <li>
+                Let's see what happens when a user misspells their query. Run the following request, which searches for <kbd>"oven sauce"</kbd> in the <kbd>"title"</kbd> field. Notice <kbd>_source</kbd> is used to filter the JSON response to show only the <kbd>title</kbd> field of the document:
+                <pre><code>GET blogs/_search
+{
+  "_source": "title",
+  "query": {
+    "match": {
+      "title": "oven sauce"
+    }
+  }
+}</code></pre>
+                Were there any hits returned?
+                <div class="solution" id="solution80"><input id="question80" data-value="answer" type="button" value="Hide answer:"><div id="answer80" style="display: block;">
+                    The query does not return any hits.
+                </div></div>
+            </li>
+            <li>
+                Try increasing the recall (perhaps at the expense of precision) by adding the <kbd>fuzziness</kbd> parameter, permitting a maximum of 2 edits per word. Did the increased recall return more of fewer hits? How relevant are they?
+                <div class="solution" id="solution81"><input id="question81" data-value="answer" type="button" value="Hide answer:"><div id="answer81" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "_source": "title",
+  "query": {
+    "match": {
+      "title": {
+        "query" : "oven sauce",
+        "fuzziness": 2
+      }
+    }
+  }
+}</code></pre>
+                    <br>
+                    There were lots of hits. Many of them do not seem relevant - allowing 2 edits on a 4 letter word with 2 vowels is not great for precision.
+                </div></div>
+            </li>
+
+            <li>
+                Modify your query so that Elasticsearch uses the <kbd>auto</kbd> fuzziness level. Were more or fewer hits returned? How relevant are they?
+
+                <div class="solution" id="solution82"><input id="question82" data-value="answer" type="button" value="Hide answer:"><div id="answer82" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "_source": "title",
+  "query": {
+    "match": {
+      "title": {
+        "query" : "oven sauce",
+        "fuzziness": "auto"
+      }
+    }
+  }
+}</code></pre>
+                    <br>
+                    There are fewer hits, and they seem more relevant than a majority of the hits from the previous request.
+                </div></div>
+            </li>
+
+            <li>
+                Write a <kbd>match_phrase</kbd> query that searches for <kbd>"elastic stack"</kbd> in the <kbd>"content"</kbd> field. Sort the results so that they are returned from newest to oldest (based on the  <kbd>"publish_date"</kbd> field).
+                <div class="solution" id="solution83"><input id="question83" data-value="answer" type="button" value="Hide answer:"><div id="answer83" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match_phrase": {
+      "content": {
+        "query" : "elastic stack"
+      }
+    }
+  },
+  "sort": [
+    {
+      "publish_date": {
+        "order": "desc"
+      }
+    }
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Modify your previous query so that the results are sorted first by author name ascending, then from newest to oldest.
+                <div class="solution" id="solution84"><input id="question84" data-value="answer" type="button" value="Hide answer:"><div id="answer84" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "match_phrase": {
+      "content": {
+        "query" : "elastic stack"
+      }
+    }
+  },
+  "sort": [
+    {
+      "author.keyword": {
+        "order": "asc"
+      }
+    },
+    {
+      "publish_date": {
+        "order": "desc"
+      }
+    }
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Our web application only shows three blog hits at a time. Modify the previous query so that it only returns the top 3 hits.
+                <div class="solution" id="solution85"><input id="question85" data-value="answer" type="button" value="Hide answer:"><div id="answer85" style="display: block;"><pre><code>GET blogs/_search
+{
+  "size": 3,
+  "query": {
+    "match_phrase": {
+      "content": {
+        "query" : "elastic stack"
+      }
+    }
+  },
+  "sort": [
+    {
+      "author.keyword": {
+        "order": "asc"
+      }
+    },
+    {
+      "publish_date": {
+        "order": "desc"
+      }
+    }
+  ]
+}</code></pre></div></div>
+            </li>
+            <li>
+                Suppose a user clicks on page 4 of the search results from your previous query. Write a query that returns the 3 hits of page 4.
+                <div class="solution" id="solution86"><input id="question86" data-value="answer" type="button" value="Hide answer:"><div id="answer86" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "from": 9,
+  "size": 3,
+  "query": {
+    "match_phrase": {
+      "content": {
+        "query" : "elastic stack"
+      }
+    }
+  },
+  "sort": [
+    {
+      "author.keyword": {
+        "order": "asc"
+      }
+    },
+    {
+      "publish_date": {
+        "order": "desc"
+      }
+    }
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Our web application highlights the search terms in the reponse in both the <kbd>title</kbd> and <kbd>content</kbd> fields. Modify the previous query to implement highlighting, enclosing the matched search terms with a &lt;mark&gt; HTML tag.<br><br> <strong>HINT: </strong> Your query does not search the <kbd>title</kbd> field, so you will need to add <kbd>"require_field_match": false</kbd> to the <kbd>highlight</kbd> clause.
+                <div class="solution" id="solution87"><input id="question87" data-value="answer" type="button" value="Hide answer:"><div id="answer87" style="display: block;">
+                <pre><code>GET blogs/_search
+{
+  "from": 9,
+  "size": 3,
+  "query": {
+    "match_phrase": {
+      "content": {
+        "query" : "elastic stack"
+      }
+    }
+  },
+  "sort": [
+    {
+      "author.keyword": {
+        "order": "asc"
+      }
+    },
+    {
+      "publish_date": {
+        "order": "desc"
+      }
+    }
+  ],
+  "highlight": {
+    "fields": {
+      "title" : {},
+      "content" : {}
+    },
+    "require_field_match": false,
+    "pre_tags": ["&lt;mark&gt;"],
+    "post_tags": ["&lt;/mark&gt;"]
+  }
+}</code></pre>
+</div></div>
+            </li>
+            <li>
+
+                Our web application allows users to filter results by category. Modify your previous query for the use case where a user has selected the <kbd>"Engineering"</kbd> category while searching for <kbd>"elastic stack"</kbd>.
+                <br>
+                <strong>TIP: </strong> Copy-and-paste your previous query in Kibana, delete its entire <kbd>"match_phrase"</kbd> block, then start typing in your <kbd>"bool"</kbd> query. Kibana will do a much better job of auto-completing the <kbd>"query"</kbd> section for you if you start with an empty <kbd>"bool"</kbd> first.
+                <div class="solution" id="solution88"><input id="question88" data-value="answer" type="button" value="Hide answer:"><div id="answer88" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "from": 9,
+  "size": 3,
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_phrase": {
+            "content": "elastic stack"
+          }
+        }
+      ],
+      "filter": {
+        "match": {
+          "category.keyword": "Engineering"
+        }
+      }
+    }
+  },
+  "sort": [
+    {
+      "author.keyword": {
+        "order": "asc"
+      }
+    },
+    {
+      "publish_date": {
+        "order": "desc"
+      }
+    }
+  ],
+  "highlight": {
+    "fields": {
+      "title" : {},
+      "content" : {}
+    },
+    "require_field_match": false,
+    "pre_tags": ["&lt;mark&gt;"],
+    "post_tags": ["&lt;/mark&gt;"]
+  }
+}</code></pre>
+                </div></div>
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary:</b> You have implemented most of the search features used in our blog search web application! In this lab, you became familiar with how to query multiple fields effectively and how to manage  precision and recall to refine or broaden the query scope. You controlled the presentation of search hits using sort, pagination and highlighting, as well as filtering results by a category.
+        </p>
+
+        <h3>End of Lab 10</h3>
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab11"></a>
+        <h2>Lab 11: Aggregating Data</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will become familiar with writing bucket and metrics aggregations. Write aggregations to answers the questions asked below.
+        </p>
+        <ol>
+            <li>
+                How many distinct URL requests were logged in the <kbd>logs_server*</kbd> indices? URL requests are indexed in the <kbd>"originalUrl"</kbd> field. You should get around 37,000 as the result. (<b>TIP:</b> set <kbd>"size"</kbd> to 0.)
+                <div class="solution" id="solution89"><input id="question89" data-value="answer" type="button" value="Hide answer:"><div id="answer89" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "my_url_value_count": {
+      "cardinality": {
+        "field": "originalUrl.keyword"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Add a query that limits the scope of your aggregation in the previous step to only documents that contain  the term <kbd>"elastic"</kbd> in the <kbd>originalUrl</kbd> field. You should get around 4,500 as the result.
+                <div class="solution" id="solution90"><input id="question90" data-value="answer" type="button" value="Hide answer:"><div id="answer90" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "query": {
+    "match": {
+      "originalUrl": "elastic"
+    }
+  },
+  "aggs": {
+    "my_url_value_count": {
+      "cardinality": {
+        "field": "originalUrl.keyword"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Based on the <kbd>"geoip.location.lat"</kbd> field, what is the northernmost location to request a blog access?
+
+                <div class="solution" id="solution91"><input id="question91" data-value="answer" type="button" value="Hide answer:"><div id="answer91" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "my_northernmost_request": {
+      "max": {
+        "field": "geoip.location.lat"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Using your result from the previous step, write a query that returns the  log event from the northern-most area. You should see an entry from somewhere in Greenland. (<b>TIP:</b> use a <kb>range</kb> query.)
+                <div class="solution" id="solution92"><input id="question92" data-value="answer" type="button" value="Hide answer:"><div id="answer92" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "query": {
+    "range": {
+      "geoip.location.lat": {
+        "gte": 72
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                How many distinct values are there for the <kbd>"status_code"</kbd> field? (<b>TIP:</b> set <kbd>"size"</kbd> to 0.)
+
+                <div class="solution" id="solution93"><input id="question93" data-value="answer" type="button" value="Hide answer:"><div id="answer93" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "status_code_cardinality": {
+      "cardinality": {
+        "field": "status_code"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                Based on the previous agg, there are 6 unique values for <kbd>"status_code"</kbd>. How many requests are there for each of the 6 values?
+
+                <div class="solution" id="solution94"><input id="question94" data-value="answer" type="button" value="Hide answer:"><div id="answer94" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "status_code_buckets": {
+      "terms": {
+        "field": "status_code"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                A <kbd>terms</kbd> agg is sorted by <kbd>doc_count</kbd> by default. Modify your previous search so that its <kbd>terms</kbd> are sorted alphabetically.
+                <div class="solution" id="solution95"><input id="question95" data-value="answer" type="button" value="Hide answer:"><div id="answer95" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "status_code_buckets": {
+      "terms": {
+        "field": "status_code",
+        "order": {
+          "_key": "asc"
+        }
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                The following query has 165 hits. Our web app has a UI that allows users to filter those hits by category, and notice that our UI shows how many hits belong to each category. Add an aggregation to the following query that returns the number of hits in each category.
+                <pre><code>GET blogs/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "multi_match": {
+          "query": "open source",
+          "fields": [
+            "title^2",
+            "content"
+          ],
+          "type": "phrase"
+        }
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {},
+      "content": {}
+    },
+    "require_field_match": false,
+    "pre_tags": [
+      "&lt;mark&gt;"
+    ],
+    "post_tags": [
+      "&lt;/mark&gt;"
+    ]
+  }
+}</code></pre>
+                <div class="solution" id="solution96"><input id="question96" data-value="answer" type="button" value="Hide answer:"><div id="answer96" style="display: block;">
+                    <pre><code>GET blogs/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "multi_match": {
+          "query": "open source",
+          "fields": [
+            "title^2",
+            "content"
+          ],
+          "type": "phrase"
+        }
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {},
+      "content": {}
+    },
+    "require_field_match": false,
+    "pre_tags": [
+      "&lt;mark&gt;"
+    ],
+    "post_tags": [
+      "&lt;/mark&gt;"
+    ]
+  },
+  "aggs": {
+    "category_terms": {
+      "terms": {
+        "field": "category.keyword",
+        "size": 10
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                How many log requests are there for each week? (<b>TIP:</b> set <kbd>"size"</kbd> to 0.)
+                <div class="solution" id="solution97"><input id="question97" data-value="answer" type="button" value="Hide answer:"><div id="answer97" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "logs_by_week": {
+      "date_histogram": {
+        "field": "@timestamp",
+        "interval": "week"
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                For each week of log requests, how many requests were received from each of the 6 values of <kbd>"status_code"</kbd>?
+                <div class="solution" id="solution98"><input id="question98" data-value="answer" type="button" value="Hide answer:"><div id="answer98" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "logs_by_week": {
+      "date_histogram": {
+        "field": "@timestamp",
+        "interval": "week"
+      },
+      "aggs": {
+        "status_code_buckets": {
+          "terms": {
+            "field": "status_code"
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+
+            <li>
+                We need to be sure we are delivering a suitable level of accuracy, so enable <kbd>show_term_doc_count_error</kbd> in the <kbd>terms</kbd> query of the <kbd>"status_code"</kbd> field. How precise are the buckets?
+
+                <div class="solution" id="solution99"><input id="question99" data-value="answer" type="button" value="Hide answer:"><div id="answer99" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "logs_by_week": {
+      "date_histogram": {
+        "field": "@timestamp",
+        "interval": "week"
+      },
+      "aggs": {
+        "status_code_buckets": {
+          "terms": {
+            "field": "status_code",
+            "show_term_doc_count_error": true
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+                    Our buckets are very precise! <kbd>doc_count_error_upper_bound == 0</kbd> for all buckets.</div></div>
+            </li>
+            <li>
+                What are the top 20 cities that requests are received from? The city is the <kbd>"geoip.city_name.keyword"</kbd> field. (<b>TIP:</b> set <kbd>"size"</kbd> to 0.)
+                <div class="solution" id="solution100"><input id="question100" data-value="answer" type="button" value="Hide answer:"><div id="answer100" style="display: block;">
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "top_cities": {
+      "terms": {
+        "field": "geoip.city_name.keyword",
+        "size": 20
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Is your city aggregation exact?
+                <div class="solution" id="solution101"><input id="question101" data-value="answer" type="button" value="Hide answer:"><div id="answer101" style="display: block;">
+                    Yes. If you set <kbd>"show_term_doc_count_error"</kbd> to true, you can see that the <kbd>"doc_count_error_upper_bound"</kbd> is 0 for each of the top 20 cities.
+                    <pre><code>GET logs_server*/_search
+{
+  "size": 0,
+  "aggs": {
+    "top_cities": {
+      "terms": {
+        "field": "geoip.city_name.keyword",
+        "size": 20,
+        "show_term_doc_count_error": true
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                <strong>OPTIONAL:</strong> Congratulations, you have answered a lot of questions using aggregations in Elasticsearch. Now you will render an aggregation in Kibana:
+                <ul>
+                    <li>Click on the <kbd>Visualize</kbd> icon on the left hand side bar</li>
+                    <li>Click on <kbd>+</kbd> to create a visualization</li>
+                    <li>Click on the <kbd>Vertical Bar</kbd> icon</li>
+                    <li>Click on the hyperlinked index pattern <kbd>logs_server*</kbd></li>
+                    <li>In the <kbd>Buckets</kbd> control select Buckets type <kbd>X-Axis</kbd></li>
+                    <li>In the <kbd>Aggregation</kbd> drop-down select <kbd>Terms</kbd> (you may have to scroll down)</li>
+                    <li>In the <kbd>Field</kbd> drop-down select <kbd>status_code</kbd></li>
+                    <li>Set <kbd>Size</kbd> to <kbd>6</kbd></li>
+                    <li>Click on the <kbd>Apply Changes</kbd> icon and you should see the following bar chart (make sure your time range is "Last 2 years"):
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab08_01.png">
+                    </li>
+                    <li>Now Click on <kbd>Metrics &amp; Axes</kbd></li>
+                    <li>In the Y-Axes control click on <kbd>LeftAxis-1</kbd></li>
+                    <li>Change <kbd>Scale Type</kbd> from <kbd>Linear</kbd> to <kbd>Log</kbd> and click <kbd>Apply Changes</kbd> again to improve visibility of the smaller buckets:
+                        <img src="./Lab Guide_ Elasticsearch Engineer I_files/lab08_02.png">
+                    </li>
+                </ul>
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you used aggregations to gain an understanding of the distribution and content of the web access logs dataset. You  partitioned the documents using structures implied in the metadata, evaluated the size and content of these partitions, and drilled down deeper inside the partitions.
+        </p>
+
+        <h3>End of Lab 11</h3>
+
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <a name="lab12"></a>
+        <h2>Lab 12: Best Practices</h2>
+        <p>
+            <strong>Objective:</strong> In this lab, you will perform some of the best practices discussed in Chapter 12, like defining aliases, using index templates, bulk operations, scroll searches, and backing up a cluster.
+        </p>
+        <ol>
+            <li>
+                Your current cluster has three indices containing the web access logs. Suppose we want all current indexing to occur only on <kbd>logs_server3</kbd>. Define an alias named <kbd>access_logs_write</kbd> that points to <kbd>logs_server3</kbd>.
+                <div class="solution" id="solution102"><input id="question102" data-value="answer" type="button" value="Hide answer:"><div id="answer102" style="display: block;">
+                    <pre><code>POST _aliases
+{
+  "actions": [
+    {
+      "add": {
+        "index": "logs_server3",
+        "alias": "access_logs_write"
+      }
+    }
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Define an alias named <kbd>access_logs_read</kbd> that points to all three <kbd>logs_server*</kbd> indices.
+                <div class="solution" id="solution103"><input id="question103" data-value="answer" type="button" value="Hide answer:"><div id="answer103" style="display: block;">
+                    <pre><code>POST _aliases
+{
+  "actions": [
+    {
+      "add": {
+        "index": "logs_server*",
+        "alias": "access_logs_read"
+      }
+    }
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Run the following query on your <kbd>access_logs_read</kbd> alias to verify it points to all three indices. You should get 1,751,476 hits:
+                <pre><code>GET access_logs_read/_search</code></pre>
+            </li>
+            <li>
+                Define an index template named <kbd>"access_logs_template"</kbd> that matches <kbd>logs_server*</kbd> and has the same index settings and mappings as your three current <kbd>logs_server*</kbd> indices. Use 10 for the <kbd>"order"</kbd> value.
+                <div class="solution" id="solution104"><input id="question104" data-value="answer" type="button" value="Hide answer:"><div id="answer104" style="display: block;">
+                    <pre><code>PUT _template/access_logs_template
+{
+  "index_patterns": "logs_server*",
+  "order": 10,
+  "settings": {
+    "number_of_shards": 5,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "doc": {
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "geoip": {
+          "properties": {
+            "city_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "continent_code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "country_code2": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "country_code3": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "country_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "location": {
+              "properties": {
+                "lat": {
+                  "type": "float"
+                },
+                "lon": {
+                  "type": "float"
+                }
+              }
+            },
+            "region_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        },
+        "host": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "http_version": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "language": {
+          "properties": {
+            "code": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "url": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            }
+          }
+        },
+        "level": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "method": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "originalUrl": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "response_size": {
+          "type": "long"
+        },
+        "runtime_ms": {
+          "type": "long"
+        },
+        "status_code": {
+          "type": "long"
+        },
+        "user_agent": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Define a new index named <kbd>logs_server4</kbd> and verify the <kbd>"access_logs_template"</kbd> template was applied.
+                <div class="solution" id="solution105"><input id="question105" data-value="answer" type="button" value="Hide answer:"><div id="answer105" style="display: block;">
+                    <pre><code>PUT logs_server4
+
+GET logs_server4</code></pre>
+                    Verify that <kbd>logs_server4</kbd> contains the same mappings and settings defined in the template.
+                </div></div>
+            </li>
+            <li>
+                In the same request, remove the <kbd>access_logs_write</kbd> alias to <kbd>logs_server3</kbd> and instead have it point to <kbd>logs_server4</kbd>.
+                <div class="solution" id="solution106"><input id="question106" data-value="answer" type="button" value="Hide answer:"><div id="answer106" style="display: block;">
+                    <pre><code>POST _aliases
+{
+  "actions": [
+    {
+      "remove": {
+        "alias": "access_logs_write",
+        "index": "logs_server3"
+      }
+    },
+    {
+      "add": {
+        "alias": "access_logs_write",
+        "index": "logs_server4"
+      }
+    }
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Index the following document using the <kbd>access_logs_write</kbd> alias, assigning the <kbd>"_id"</kbd> to 1. Then GET the document in the <kbd>logs_server4</kbd> index to verify the alias worked successfully:
+                <pre><code>{
+  "@timestamp": "2018-03-21T05:57:19.722Z",
+  "originalUrl": "/blog/logstash-jdbc-input-plugin",
+  "host": "server2",
+  "response_size": 58754,
+  "status_code": 200,
+  "method": "GET",
+  "runtime_ms": 143,
+  "geoip": {
+    "country_code2": "IN",
+    "country_code3": "IN",
+    "continent_code": "AS",
+    "location": {
+      "lon": 77.5833,
+      "lat": 12.9833
+    },
+    "region_name": "Karnataka",
+    "city_name": "Bengaluru",
+    "country_name": "India"
+  },
+  "language": {
+    "url": "/blog/logstash-jdbc-input-plugin",
+    "code": "en-us"
+  },
+  "user_agent": "Amazon CloudFront",
+  "http_version": "1.1",
+  "level": "info"
+}</code></pre>
+                <div class="solution" id="solution107"><input id="question107" data-value="answer" type="button" value="Hide answer:"><div id="answer107" style="display: block;">
+                    <pre><code>PUT access_logs_write/doc/1
+{
+  "@timestamp": "2018-03-21T05:57:19.722Z",
+  "originalUrl": "/blog/logstash-jdbc-input-plugin",
+  "host": "server2",
+  "response_size": 58754,
+  "status_code": 200,
+  "method": "GET",
+  "runtime_ms": 143,
+  "geoip": {
+    "country_code2": "IN",
+    "country_code3": "IN",
+    "continent_code": "AS",
+    "location": {
+      "lon": 77.5833,
+      "lat": 12.9833
+    },
+    "region_name": "Karnataka",
+    "city_name": "Bengaluru",
+    "country_name": "India"
+  },
+  "language": {
+    "url": "/blog/logstash-jdbc-input-plugin",
+    "code": "en-us"
+  },
+  "user_agent": "Amazon CloudFront",
+  "http_version": "1.1",
+  "level": "info"
+}
+
+GET logs_server4/doc/1</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Run the following command, which deletes an index named <kbd>my_blogs</kbd> and then indexes two documents:
+                <pre><code>DELETE my_blogs
+PUT my_blogs/_doc/1
+{
+  "id": "1",
+  "title": "Better query execution",
+  "category": "Engineering",
+  "date":"July 15, 2015",
+  "author":{
+    "first_name": "Adrian",
+    "last_name": "Grand",
+    "company": "Elastic"
+  }
+}
+PUT my_blogs/_doc/2
+{
+  "id": "2",
+  "title": "The Story of Sense",
+  "date":"May 28, 2015",
+  "author":{
+    "first_name": "Boaz",
+    "last_name": "Leskes"
+  }
+}</code></pre>
+            </li>
+            <li>
+                Perform a bulk operation that executes the following operations on the <kbd>my_blogs</kbd> index from the previous step:
+                <ul>
+                    <li>Update document 2: set <kbd>"category"</kbd> to <kbd>"Engineering"</kbd> and set <kbd>"author.company"</kbd> to <kbd>"Elastic"</kbd></li>
+                    <li>Index a new document with <kbd>"_id"</kbd> of 3 that contains the following fields and values:
+                        <pre><code>{
+  "title": "Using Elastic Graph",
+  "category": "Engineering",
+  "date": "May 25, 2016",
+  "author": {
+    "first_name": "Mark",
+    "last_name": "Harwood",
+    "company": "Elastic"
+  }
+}</code></pre>
+                    </li>
+                </ul>
+                Run a search on <kbd>my_blogs</kbd> to verify your two bulk operations were both successful.
+                <div class="solution" id="solution108"><input id="question108" data-value="answer" type="button" value="Hide answer:"><div id="answer108" style="display: block;">
+                    <pre><code>POST my_blogs/_doc/_bulk
+{"update": {"_id": 2}}
+{"doc": {"category": "Engineering", "author.company":"Elastic"}}
+{"index": {"_id": 3}}
+{"title":"Using Elastic Graph","category":"Engineering","date":"May 25, 2016","author":{"first_name":"Mark","last_name":"Harwood","company":"Elastic"}}
+
+GET my_blogs/_search</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Use <kbd>_mget</kbd> to retrieve the documents with the ids <kbd>1</kbd> and <kbd>2</kbd> (and type <kbd>_doc</kbd>) from your <kbd>my_blogs</kbd> index.
+                <div class="solution" id="solution109"><input id="question109" data-value="answer" type="button" value="Hide answer:"><div id="answer109" style="display: block;">
+                    <pre><code>GET my_blogs/_doc/_mget
+{
+  "docs": [
+    {"_id":1},
+    {"_id":2}
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Suppose you want to retrieve every blog in the <kbd>blogs</kbd> index, but you want to retrieve the documents in chunks so you do not overwhelm the cluster. Write a scroll search that retrieves 500 documents from <kbd>blogs</kbd>. Sort the documents by <kbd>"_doc"</kbd> to minimize the query's overhead, and set the timeout to 3 minutes.
+                <div class="solution" id="solution110"><input id="question110" data-value="answer" type="button" value="Hide answer:"><div id="answer110" style="display: block;">
+                    <pre><code>GET blogs/_search?scroll=3m
+{
+  "size": 500,
+  "query": {
+    "match_all": {}
+  },
+  "sort": [
+    {
+      "_doc": {
+        "order": "asc"
+      }
+    }
+  ]
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Retrieve the next 500 blog documents from your scroll search in the previous step.
+                <div class="solution" id="solution111"><input id="question111" data-value="answer" type="button" value="Hide answer:"><div id="answer111" style="display: block;">
+                    <pre><code>GET _search/scroll
+{
+  "scroll": "3m",
+  "scroll_id": "put_your_scroll_id_here"
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Now you are going to take a snapshot of your <kbd>blogs</kbd> index. Stop Elasticsearch on all three of your servers, but leave the terminal tabs open. (This task will be easier if you are SSH'd onto each of your three servers in a separate tab.)
+            </li>
+            <li>
+                Notice there is a single folder named <kbd>/shared_folder</kbd> that each server can read/write to. Create a new subfolder of <kbd>/shared_folder/</kbd> called <kbd>my_repo</kbd>. (You only need to run this command on one of the servers):
+                <pre class="bash">mkdir /shared_folder/my_repo</pre>
+            </li>
+            <li>
+                Add the following <kbd>path.repo</kbd> property to the <kbd>elasticsearch.yml</kbd> files of <kbd>node1</kbd>, <kbd>node2</kbd> and <kbd>node3</kbd>:
+                <pre><code>path.repo: /shared_folder/my_repo</code></pre>
+            </li>
+            <li>
+                Start Elasticsearch on all three nodes.
+            </li>
+            <li>
+                Within the Kibana Console, register the <kbd>/shared_folder/my_repo</kbd> directory as a repository called <kbd>my_local_repo</kbd>.
+                <br>
+                <div class="solution" id="solution112"><input id="question112" data-value="answer" type="button" value="Hide answer:"><div id="answer112" style="display: block;"><pre><code>PUT _snapshot/my_local_repo
+{
+  "type": "fs",
+  "settings": {
+    "location": "/shared_folder/my_repo"
+  }
+}</code></pre></div></div>
+            </li>
+            <li>
+                Now that you have a repository configured, you cluster is ready for taking snapshots. Take a snapshot named <kbd>blogs_snapshot_1</kbd> of the <kbd>blogs</kbd> index, including the cluster state, and saving the snapshot in your new repository.
+                <div class="solution" id="solution113"><input id="question113" data-value="answer" type="button" value="Hide answer:"><div id="answer113" style="display: block;">
+                    <pre><code>PUT _snapshot/my_local_repo/blogs_snapshot_1
+{
+  "indices": "blogs",
+  "ignore_unavailable": true,
+  "include_global_state": true
+}</code></pre>
+                </div></div>
+            </li>
+            <li>
+                View all of the snapshots in your repository. You should see <kbd>blogs_snapshot_1</kbd> in the list.
+                <div class="solution" id="solution114"><input id="question114" data-value="answer" type="button" value="Hide answer:"><div id="answer114" style="display: block;">
+                    <pre><code>GET _snapshot/my_local_repo/_all</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Delete your <kbd>blogs</kbd> index. (That's right - delete it!)
+                <div class="solution" id="solution115"><input id="question115" data-value="answer" type="button" value="Hide answer:"><div id="answer115" style="display: block;">
+                    <pre><code>DELETE blogs</code></pre>
+                </div></div>
+            </li>
+            <li>
+                Restore the <kbd>blogs</kbd> index using your snapshot from the previous step. Do not restore the cluster state (your current cluster state is fine).
+                <div class="solution" id="solution116"><input id="question116" data-value="answer" type="button" value="Hide answer:"><div id="answer116" style="display: block;">
+                    <pre><code>POST _snapshot/my_local_repo/blogs_snapshot_1/_restore
+{
+  "indices": "blogs",
+  "ignore_unavailable": true,
+  "include_global_state": false
+}</code></pre>
+                </div></div>
+            </li>
+        </ol>
+
+        <p>
+            <b>Summary</b>: In this lab, you defined aliases and index templates, did some bulk operations, performed a scroll, and backed up an index using snapshots. All of these tasks are critical skills to have when managing a production Elasticsearch cluster. Well done! If you have completed every step in every lab, then you should be well on your way to becoming an Elasticsearch expert, and also well on your way to becoming an Elastic Certified Engineer. View more details on our website at <a href="http://elastic.co/training/certification" target="_blank">elastic.co/training/certification</a>.
+        </p>
+
+        <h3>End of Lab 12</h3>
+
+        <hr>
+
+        <!-- ******************************************************************************* -->
+
+        <script type="text/javascript">
+            build_solutions()
+        </script>
+
+        <p>© Elasticsearch BV 2015-2019. All rights reserved. Decompiling, copying, publishing and/or distribution without written consent of Elasticsearch BV is strictly prohibited.</p>
+
+    
+
+</body></html>
